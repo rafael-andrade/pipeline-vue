@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+</head>
+<script src="https://unpkg.com/vue/dist/vue.js"></script>
+<body>
+	<div id="pipeline">
+
+
+
+		<select v-model="selected">
+			<option v-for="type in types"> {{type}} </option>			
+		</select>
+		<span v-if="selected == 'INTEGER'">
+			<select v-model="op">
+				<option v-for="operation in operationsInt"> {{operation}}</option>
+			</select>
+			<select v-model.number="rt">
+				<option v-for="register in r" v-bind:value="register.id" > {{register.name}}</option>
+			</select>
+			<select v-model.number="rs">
+				<option v-for="register in r" v-bind:value="register.id"> {{register.name}}</option>
+			</select>
+			<select v-model.number="rd">
+				<option v-for="register in r" v-bind:value="register.id" > {{register.name}}</option>
+			</select>
+		</span>
+		<span v-if="selected == 'FLOAT'">
+			<select v-model="op">
+				<option v-for="operation in operationsFloat"> {{operation}}</option>
+			</select>
+			<select v-model.number="rt">
+				<option v-for="register in f" v-bind:value="register.id"> {{register.name}}</option>
+			</select>
+			<select v-model.number="rs">
+				<option v-for="register in f" v-bind:value="register.id"> {{register.name}}</option>
+			</select>
+			<select v-model.number="rd">
+				<option v-for="register in f" v-bind:value="register.id"> {{register.name}}</option>
+			</select>
+		</span>
+		
+
+		<button v-on:click="insertInstruction">Inserir</button>
+
+
+
+
+		<table>
+
+			<tr v-for="inst in instructions">
+				<th>{{inst.id}}</th>
+				<th>{{inst.operation}}</th>
+				<th v-if="inst.type == 'INTEGER'">{{r[inst.rt].name}}</th><th v-else>{{f[inst.rt].name}}</th>
+				<th v-if="inst.type == 'INTEGER'">{{r[inst.rs].name}}</th><th v-else>{{f[inst.rt].name}}</th>
+				<th v-if="inst.type == 'INTEGER'">{{r[inst.rd].name}}</th><th v-else>{{f[inst.rt].name}}</th>
+			</tr>
+		</table>
+	</div>
+
+</body>
+<script type="text/javascript">
+	var app = new Vue({
+		el: '#pipeline',
+		data: {
+			newTodoText: '',
+			begin: 0,
+			op: '',
+			rt: 0,
+			rs: 0,
+			rd:0,
+			selected: 0,
+			types: [
+			'INTEGER',
+			'FLOAT'
+			],
+			operationsInt: [
+			'ADD',
+			'SUB',
+			'MULT',
+			'DIV'
+			],
+			operationsFloat: [
+			'ADD.D',
+			'SUB.D',
+			'MULT.D'],
+			instructions: [
+			{id:0, type:"INTEGER", operation: "ADD", rt: 0, rs: 2, rd: 3},
+			{id:2, type:"INTEGER", operation: "ADD", rt: 2, rs: 3, rd: 4}
+			],
+			stalls: [],
+			r: [
+			{id: 0, name:"R0", readAt: -1},
+			{id: 1, name:"R1", readAt: -1},
+			{id: 2, name:"R2", readAt: -1},
+			{id: 3, name:"R3", readAt: -1},
+			{id: 4, name:"R4", readAt: -1}
+			],
+			f: [
+			{id: 0, name:"F0", readAt: -1},
+			{id: 2, name:"F2", readAt: -1},
+			{id: 4, name:"F4", readAt: -1}
+			]
+		},
+		methods: {
+			addNewTodo: function () {
+				this.todos.push(this.newTodoText)
+				this.newTodoText = ''
+			},
+			insertInstruction: function() {
+				this.instructions.push({id: this.instructions.length, type: this.selected, operation:this.op, rt: this.rt, rs: this.rs, rd: this.rd})
+				console.log(this.instructions)
+			},
+			executarNoFowarding: function() {
+
+			},
+			executarFowarding: function() {
+
+			}
+
+		}
+	})
+</script>
+</html>
