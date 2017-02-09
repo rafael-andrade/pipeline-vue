@@ -78,6 +78,12 @@
 			</tr>
 
 		</table>
+
+		<table id="pipeline-table">
+
+			
+
+		</table>
 		<button v-on:click="executarNoFowarding">Executar</button>
 
 		
@@ -88,14 +94,18 @@
 <script type="text/javascript">
 	var app = new Vue({
 		el: '#pipeline',
+		// Valores usados na view e nos cálculos do pipeline
 		data: {
 			newTodoText: '',
 			i: 0,
 			begin: 0,
 			op: '',
+			ind : 0,
+			index: 0,
 			inteiro: -1, mult: 7, div: -1, add: 3,
 			rt: -1, rs: -1, rd: -1,
 			selected: 0,
+			fowarding: false,
 			types: [
 			'INTEGER',
 			'FLOAT'
@@ -137,12 +147,8 @@
 
 		},
 		methods: {
-			addNewTodo: function () {
-				this.todos.push(this.newTodoText)
-				this.newTodoText = ''
-			},
+			//Método que insere uma instrução no vetor data.instructions
 			insertInstruction: function() {
-				//console.log("VAI TOMA NO CU CARAI", this.f[this.rt].name,this.f[this.rs].name,this.f[this.rd].name)
 				this.instructions.push({id: this.instructions.length, 
 					type: this.selected,
 					operation:this.op, 
@@ -150,8 +156,9 @@
 					rs: this.rs, 
 					rd: this.rd
 				})
-				//console.log(this.instructions)
 			},
+			//Executa operação usando ou não fowarding
+			//Necessita alteração - FOWARDING SERÁ definido 
 			executarNoFowarding: function() {
 				this.resetReg()
 				console.log("entrou no metodo")
@@ -161,9 +168,12 @@
 				var registersInt = this.r
 				var registersFloat = this.f
 				stall = this.stalls
-				for(i = 0; i < inst.length; i++) {
-					console.log("entrou no for", inst.length)
-					console.log(inst[i].operation)
+
+
+				//Faz a execução de todas as instruções
+				for(var i = 0; i < inst.length; i++) {
+					//console.log("entrou no for", inst.length, " valor de i:" ,i)
+					//console.log(inst[i].operation)
 					switch(inst[i].operation) {
 						case 'SUB':
 						case 'MULT':
@@ -171,27 +181,30 @@
 						case 'ADD':
 						case 'LD':
 						case 'SW':
-							console.log("entrou no case",inicio)
-							executaInstrução(1,inicio,stall,registersInt,inst[i],pipe)
-							inicio = inicio + 1				
-							break;
+						console.log("entrou no case",inicio)
+						executaInstrução(1,inicio,stall,registersInt,inst[i],pipe,this.fowarding)
+						inicio = inicio + 1				
+						break;
 						case 'ADD.D':
-							console.log("entrou no ADD.D")
-							executaInstrução(this.add,inicio,stall,registersFloat,inst[i],pipe)
-							inicio = inicio + 1			
-							break;
+						console.log("entrou no ADD.D")
+						executaInstrução(this.add,inicio,stall,registersFloat,inst[i],pipe,this.fowarding)
+						inicio = inicio + 1			
+						break;
 						case 'MULT.D':
-							console.log("entrou no MULT.D")
-							executaInstrução(this.mult,inicio,stall,registersFloat,inst[i],pipe)
-							inicio = inicio + 1			
-							break;
-
-
-
+						console.log("entrou no MULT.D")
+						executaInstrução(this.mult,inicio,stall,registersFloat,inst[i],pipe,this.fowarding)
+						console.log("saindo do mult")
+						inicio = inicio + 1			
+						break
+						default: 
+						console.log("testando");
+						break;
 					}
+					console.log("valor de i no final", i)
 				}
+				console.log("saiu do for", inst.length)
 
-
+				printTable(pipe,stall)
 				this.stalls = stall
 			},
 			executarFowarding: function() {
@@ -236,7 +249,7 @@
 
 	function checkStall (pos, stalls) {
 		//console.log("checkStall")
-		if(!findValue(pos,stalls)) {
+		if(findValue(pos,stalls) < 0) {
 			return pos
 		}
 		return checkStall(pos+1,stalls)
@@ -244,8 +257,8 @@
 
 	function insertStall (pos, vetor, inst) {
 		//console.log("INSERT")
-		if (!findValue(pos,vetor)) {
-			vetor = vetor.push({
+		if (findValue(pos,vetor) < 0) {
+			vetor.push({
 				pos: pos,
 				inst: inst
 			})
@@ -255,19 +268,19 @@
 	function findValue (value,array) {
 		//console.log("PROCURA")
 		for (i = 0; i < array.length; i++) {
-			if (array.pos == value) {
-				return true
+			if (array[i].pos == value) {
+				return i
 			}
 		}
-		return false
+		return -1
 	}
-	function executaInstrução(cycleTime,inicio,stalls,registers,instrucao,pipeline) {
+	function executaInstrução(cycleTime,inicio,stalls,registers,instrucao,pipeline,fowarding) {
 		var f,d,ex,m,w = -1 
 		f = checkStall(inicio+1,stalls)
 		id = checkStall(f+1,stalls)
 		id_aux = id
 		// IMPORTANTE - aqui no fowarding será diferente
-		console.log(f,d)
+		//console.log(f,d)
 		//RAW - Read after write (registrador ainda nao tá pronto)
 
 		if (instrucao.rs != -1 && registers[instrucao.rs].readyAt > id_aux ){
@@ -288,28 +301,89 @@
 			} while (id_aux < registers[instrucao.rd].readyAt)
 		}
 
+		for (var i = 0; i < stalls.length; i++ ) { 
+			console.log(stalls[i].pos)
+		}
+
 		//!!!!! PRECISA INSERIR NO VETOR PIPELINE !!!!!!! AINDA NAO ESTA FAZENDO ISSO
 		//!!!!! PRECISA INSERIR NO VETOR PIPELINE !!!!!!! AINDA NAO ESTA FAZENDO ISSO
 		//!!!!! PRECISA INSERIR NO VETOR PIPELINE !!!!!!! AINDA NAO ESTA FAZENDO ISSO
 		ex = id_aux + 1
 		m = ex + cycleTime
 		w = m + 1
-		registers[instrucao.rt].readyAt = w
+		if (fowarding) { 
+			switch (instrucao.operation) {
+				case 'L.D':
+				case 'S.D':
+				registers[instrucao.rt].readyAt = m
+				break;
+				default:
+				registers[instrucao.rt].readyAt = m-1
+				break;
+			}
+		} else {
+			registers[instrucao.rt].readyAt = w
+		}
+
 		console.log(f,id,ex,m,w)
 		pipeline.push({
+			inst: instrucao,
 			f: f,
 			id: id,
 			ex: ex,
 			m: m,
 			w: w
-		})
-		
+		})		
 		console.log("vetor de bolha",stalls)
 	}
 
-	function printTable(pipeline) {
-		for (i = 0; i < pipeline.length; i++) {
+	function printTable(pipeline,stalls) {
+		var table = document.getElementById("pipeline-table")
+		var value = ""
+		for (var i = 0; i < pipeline.length; i ++) {
+			console.log("insere linha")
+			var row = table.insertRow(i)
+			console.log("valooooooooooor do W", pipeline[i].w)
+			for (var j = 1; j <= pipeline[i].w; j++) {
+				tableValue = j - 1
+				while( j < pipeline[i].f) {
+					row.insertCell(tableValue).innerHTML = " - "
+					tableValue = j 
+					j = j + 1
 
+				}
+				if (j == pipeline[i].f) {
+					console.log("IF: ",pipeline[i].f)
+					row.insertCell(tableValue).innerHTML = " IF "
+				}
+				else if (j == pipeline[i].id) {
+					console.log("ID: 	",pipeline[i].id)
+					row.insertCell(tableValue).innerHTML = " ID "
+				}
+				else if (j == pipeline[i].ex) {
+					console.log("EX: ",pipeline[i].ex)
+					for (;j < pipeline[i].m;j++) {
+						console.log(j)
+						row.insertCell(tableValue).innerHTML = " EX"
+					}
+					j = j - 1					
+				}
+				else if (j == pipeline[i].m) {
+					console.log("M: ",pipeline[i].m)
+					row.insertCell(tableValue).innerHTML = " M "
+				}
+
+				else if (j == pipeline[i].w) {
+					console.log("W: ",pipeline[i].w)
+					row.insertCell(tableValue).innerHTML = " W "
+				}
+
+				else {
+					row.insertCell(tableValue).innerHTML = " STALL "
+				}
+
+			}
+			
 		}
 	}
 </script>
