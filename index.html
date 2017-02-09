@@ -20,12 +20,18 @@
 			<select v-model="op">
 				<option v-for="operation in operationsInt"> {{operation}}</option>
 			</select>
+			
 			<select v-model.number="rt">
 				<option v-for="register in r" v-bind:value="register.id" > {{register.name}}</option>
 			</select>
-			<select v-model.number="rs">
+
+			<select v-model.number="rs" v-if="op == 'LW' || op == 'SW'">
+				<option v-bind:value="-1" >OffSet</option>
+			</select>
+			<select v-else v-model.number="rs">
 				<option v-for="register in r" v-bind:value="register.id"> {{register.name}}</option>
 			</select>
+
 			<select v-model.number="rd">
 				<option v-for="register in r" v-bind:value="register.id" > {{register.name}}</option>
 			</select>
@@ -44,7 +50,7 @@
 				<option v-for="register in f" v-bind:value="register.id"> {{register.name}}</option>
 			</select>
 		</div>
-		
+
 
 		<button v-on:click="insertInstruction">Inserir</button>
 
@@ -58,11 +64,11 @@
 				<th v-if="inst.type == 'INTEGER'">{{r[inst.rs].name}}</th><th v-else>{{f[inst.rt].name}}</th>
 				<th v-if="inst.type == 'INTEGER'">{{r[inst.rd].name}}</th><th v-else>{{f[inst.rt].name}}</th>
 			</tr>
-			
+
 		</table>
 		<button v-on:click="executarNoFowarding">Executar</button>
 	</div>
-	
+
 
 </body>
 <script type="text/javascript">
@@ -80,6 +86,8 @@
 			'FLOAT'
 			],
 			operationsInt: [
+			'LW',
+			'SW',
 			'ADD',
 			'SUB',
 			'MULT',
@@ -91,7 +99,7 @@
 			'MULT.D'],
 			instructions: [
 			{id:0, type: 'INTEGER',operation: 'ADD', rt: 0, rs: 1, rd: 3},
-			{id:0, type: 'INTEGER',operation: 'ADD', rt: 1, rs: 0, rd: 3}
+			{id:1, type: 'INTEGER',operation: 'ADD', rt: 1, rs: 0, rd: 3}
 			],
 			stalls: [],
 			r: [
@@ -136,43 +144,51 @@
 					console.log("entrou no for")
 					console.log(inst[i].operation)
 					switch(inst[i].operation) {
+						case 'SUB':
+						case 'MULT':
+						case 'DIV':
 						case 'ADD':
+						case 'LD':
+						case 'SW':
 
 						f = checkStall(inicio+1,stall)
-						d = checkStall(f+1,stall)
-							// IMPORTANTE - aqui no fowarding será diferente
-							console.log(f,d)
-							if (registersInt[inst[i].rs].readyAt <= d && registersInt[inst[i].rd].readyAt <= d ) {
-								console.log("entrou no if")
-								ex = d+1
-								m = ex + 1
-								w = m + 1
-								registersInt[inst[i].rt].readyAt = w
-								console.log(f,d,ex,m,w)
-								//!!!!! PRECISA INSERIR NO VETOR PIPELINE !!!!!!! AINDA NAO ESTA FAZENDO ISSO
-							} 
-							//RAW - Read after write (registrador ainda nao tá pronto)
-							if (registersInt[inst[i].rs].readyAt > d){
-								//aqui tem que adicionar no vetor stall
-								do {
-									console.log("entrou no do")
-									d= d+1
-									insertStall(d,stall)
-								} while (d < registersInt[inst[i].rs].readyAt)
-								
-							} if (registersInt[inst[i].rd].readyAt > d){
-								//aqui tem que adicionar no vetor stall
-								do {
-									console.log("entrou no do")
-									d= d+1
-									insertStall(d,stall)
-									
-								} while (d < registersInt[inst[i].rd].readyAt)
-							}
+						id = checkStall(f+1,stall)
+						id_aux = id
+						// IMPORTANTE - aqui no fowarding será diferente
+						console.log(f,d)
+						//RAW - Read after write (registrador ainda nao tá pronto)
 
-							console.log("vetor de bolha",stall)
-							inicio = inicio + 1
-							break;
+						if (inst[i].rs != -1 && registersInt[inst[i].rs].readyAt > id_aux ){
+								//aqui tem que adicionar no vetor stall
+								do {
+									console.log("entrou no do")
+									id_aux= id_aux+1
+									insertStall(id_aux,stall)
+								} while (id_aux< registersInt[inst[i].rs].readyAt)
+
+						}
+
+						if (registersInt[inst[i].rd].readyAt > id_aux){
+							//aqui tem que adicionar no vetor stall
+							do {
+								console.log("entrou no do")
+								id_aux= id_aux+1
+								insertStall(id_aux,stall)
+								
+							} while (id_aux < registersInt[inst[i].rd].readyAt)
+						}
+
+						//!!!!! PRECISA INSERIR NO VETOR PIPELINE !!!!!!! AINDA NAO ESTA FAZENDO ISSO
+						//!!!!! PRECISA INSERIR NO VETOR PIPELINE !!!!!!! AINDA NAO ESTA FAZENDO ISSO
+						//!!!!! PRECISA INSERIR NO VETOR PIPELINE !!!!!!! AINDA NAO ESTA FAZENDO ISSO
+						ex = id_aux+1
+						m = ex + 1
+						w = m + 1
+						registersInt[inst[i].rt].readyAt = w
+						console.log(f,id,ex,m,w)
+						console.log("vetor de bolha",stall)
+						inicio = inicio + 1
+						break;
 
 
 							
