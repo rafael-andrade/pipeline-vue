@@ -43,7 +43,12 @@
 			<select v-model.number="rt">
 				<option v-for="register in f" v-bind:value="register.id"> {{register.name}}</option>
 			</select>
-			<select v-model.number="rs">
+			
+			<select v-model.number="rs" v-if="op == 'L.D' || op == 'S.D'">
+				<option v-bind:value="-1" >OffSet</option>
+				<option v-for="register in r" v-bind:value="register.id"> {{register.name}}</option>
+			</select>
+			<select v-model.number="rs" v-else>
 				<option v-for="register in f" v-bind:value="register.id"> {{register.name}}</option>
 			</select>
 			<select v-model.number="rd">
@@ -94,6 +99,8 @@
 			'DIV'
 			],
 			operationsFloat: [
+			'L.D',
+			'S.D',
 			'ADD.D',
 			'SUB.D',
 			'MULT.D'],
@@ -166,9 +173,9 @@
 									insertStall(id_aux,stall)
 								} while (id_aux< registersInt[inst[i].rs].readyAt)
 
-						}
+							}
 
-						if (registersInt[inst[i].rd].readyAt > id_aux){
+							if (registersInt[inst[i].rd].readyAt > id_aux){
 							//aqui tem que adicionar no vetor stall
 							do {
 								console.log("entrou no do")
@@ -191,17 +198,17 @@
 						break;
 
 
-							
-						}
-					}
-				},
-				executarFowarding: function() {
 
+					}
 				}
+			},
+			executarFowarding: function() {
 
 			}
 
-		})
+		}
+
+	})
 
 	function checkStall (valor, vetor) {
 		if(!vetor.includes(valor)) {
