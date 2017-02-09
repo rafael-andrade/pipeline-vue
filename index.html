@@ -66,8 +66,8 @@
 				<th>{{inst.id}}</th>
 				<th>{{inst.operation}}</th>
 				<th v-if="inst.type == 'INTEGER'">{{r[inst.rt].name}}</th><th v-else>{{f[inst.rt].name}}</th>
-				<th v-if="inst.type == 'INTEGER'">{{r[inst.rs].name}}</th><th v-else>{{f[inst.rt].name}}</th>
-				<th v-if="inst.type == 'INTEGER'">{{r[inst.rd].name}}</th><th v-else>{{f[inst.rt].name}}</th>
+				<th v-if="inst.type == 'INTEGER'">{{r[inst.rs].name}}</th><th v-else>{{f[inst.rs].name}}</th>
+				<th v-if="inst.type == 'INTEGER'">{{r[inst.rd].name}}</th><th v-else>{{f[inst.rd].name}}</th>
 			</tr>
 
 		</table>
@@ -79,7 +79,99 @@
 <script type="text/javascript">
 	var app = new Vue({
 		el: '#pipeline',
-		data: {
+		data: function() {
+			return inicialState()
+		},
+		methods: {
+			addNewTodo: function () {
+				this.todos.push(this.newTodoText)
+				this.newTodoText = ''
+			},
+			insertInstruction: function() {
+				this.instructions.push({id: this.instructions.length, 
+					type: this.selected,
+					operation:this.op, 
+					rt: this.rt, 
+					rs: this.rs, 
+					rd: this.rd
+				})
+				//console.log(this.instructions)
+			},
+			executarNoFowarding: function() {
+				this.resetReg()
+				console.log("entrou no metodo")
+				var inst = this.instructions
+				var pipe = this.pipeline
+				var inicio = this.begin
+				var registersInt = this.r
+				var registersFloat = this.f
+				stall = this.stalls
+				for(i = 0; i < inst.length; i++) {
+					console.log("entrou no for")
+					console.log(inst[i].operation)
+					switch(inst[i].operation) {
+						case 'SUB':
+						case 'MULT':
+						case 'DIV':
+						case 'ADD':
+						case 'LD':
+						case 'SW':
+							console.log("entrou no case",inicio)
+							executaInstrução(1,inicio,stall,registersInt,inst[i])
+							inicio = inicio + 1				
+							break;
+						case 'ADD.D':
+							executaInstrução(this.add,inicio,stall,registersFloat,inst[i])
+							inicio = inicio + 1			
+							break;
+						case 'MULT.D':
+							executaInstrução(this.mult,inicio,stall,registersFloat,inst[i])
+							inicio = inicio + 1			
+							break;
+
+					}
+				}
+				this.stalls = stall
+			},
+			executarFowarding: function() {
+
+			},
+			resetReg: function() {
+				for (i = 0 ; i < this.r.length; i++) {
+					this.r[i].readyAt = -1
+				}
+				for (i = 0 ; i < this.f.length; i++) {
+					this.f[i].readyAt = -1
+				}
+
+				this.stalls = []
+				this.pipeline = []
+			},
+			resetAll : function() {
+				this.resetReg()
+				this.instructions = []
+			}
+
+
+		}
+
+	})
+
+	function checkStall (valor, vetor) {
+		if(!vetor.includes(valor)) {
+			return valor
+		}
+		return checkStall(valor+1,vetor)
+	}
+
+	function insertStall (valor, vetor) {
+		if (!vetor.includes(valor)) {
+			vetor = vetor.push(valor)
+		}
+	}
+
+	function inicialState() {
+		return {
 			newTodoText: '',
 			begin: 0,
 			op: '',
@@ -105,8 +197,8 @@
 			'SUB.D',
 			'MULT.D'],
 			instructions: [
-			{id:0, type: 'INTEGER',operation: 'ADD', rt: 0, rs: 1, rd: 3},
-			{id:1, type: 'INTEGER',operation: 'ADD', rt: 1, rs: 0, rd: 3}
+			//{id:0, type: 'INTEGER',operation: 'ADD', rt: 0, rs: 1, rd: 3},
+			//{id:1, type: 'INTEGER',operation: 'ADD', rt: 1, rs: 0, rd: 3}
 			],
 			stalls: [],
 			r: [
@@ -122,67 +214,6 @@
 			{id: 4, name:"F4", readyAt: -1}
 			],
 			pipeline: []
-		},
-		methods: {
-			addNewTodo: function () {
-				this.todos.push(this.newTodoText)
-				this.newTodoText = ''
-			},
-			insertInstruction: function() {
-				this.instructions.push({id: this.instructions.length, 
-					type: this.selected,
-					operation:this.op, 
-					rt: this.rt, 
-					rs: this.rs, 
-					rd: this.rd
-				})
-				//console.log(this.instructions)
-			},
-			executarNoFowarding: function() {
-				console.log("entrou no metodo")
-				var inst = this.instructions
-				var pipe = this.pipeline
-				var inicio = this.begin
-				var registersInt = this.r
-				var registersFloat = this.f
-				var stall = this.stalls
-				for(i = 0; i < inst.length; i++) {
-					console.log("entrou no for")
-					console.log(inst[i].operation)
-					switch(inst[i].operation) {
-						case 'SUB':
-						case 'MULT':
-						case 'DIV':
-						case 'ADD':
-						case 'LD':
-						case 'SW':
-							console.log("entrou no case",inicio)
-
-							executaInstrução(1,inicio,stall,registersInt,inst[i])
-							inicio = inicio + 1				
-							break;
-
-					}
-				}
-			},
-			executarFowarding: function() {
-
-			}
-
-		}
-
-	})
-
-	function checkStall (valor, vetor) {
-		if(!vetor.includes(valor)) {
-			return valor
-		}
-		return checkStall(valor+1,vetor)
-	}
-
-	function insertStall (valor, vetor) {
-		if (!vetor.includes(valor)) {
-			vetor = vetor.push(valor)
 		}
 	}
 
