@@ -146,7 +146,6 @@
 				var registersInt = this.r
 				var registersFloat = this.f
 				var stall = this.stalls
-				var f,d,ex,m,w = -1 
 				for(i = 0; i < inst.length; i++) {
 					console.log("entrou no for")
 					console.log(inst[i].operation)
@@ -157,47 +156,11 @@
 						case 'ADD':
 						case 'LD':
 						case 'SW':
+							console.log("entrou no case",inicio)
 
-						f = checkStall(inicio+1,stall)
-						id = checkStall(f+1,stall)
-						id_aux = id
-						// IMPORTANTE - aqui no fowarding será diferente
-						console.log(f,d)
-						//RAW - Read after write (registrador ainda nao tá pronto)
-
-						if (inst[i].rs != -1 && registersInt[inst[i].rs].readyAt > id_aux ){
-								//aqui tem que adicionar no vetor stall
-								do {
-									console.log("entrou no do")
-									id_aux= id_aux+1
-									insertStall(id_aux,stall)
-								} while (id_aux< registersInt[inst[i].rs].readyAt)
-
-							}
-
-							if (registersInt[inst[i].rd].readyAt > id_aux){
-							//aqui tem que adicionar no vetor stall
-							do {
-								console.log("entrou no do")
-								id_aux= id_aux+1
-								insertStall(id_aux,stall)
-								
-							} while (id_aux < registersInt[inst[i].rd].readyAt)
-						}
-
-						//!!!!! PRECISA INSERIR NO VETOR PIPELINE !!!!!!! AINDA NAO ESTA FAZENDO ISSO
-						//!!!!! PRECISA INSERIR NO VETOR PIPELINE !!!!!!! AINDA NAO ESTA FAZENDO ISSO
-						//!!!!! PRECISA INSERIR NO VETOR PIPELINE !!!!!!! AINDA NAO ESTA FAZENDO ISSO
-						ex = id_aux+1
-						m = ex + 1
-						w = m + 1
-						registersInt[inst[i].rt].readyAt = w
-						console.log(f,id,ex,m,w)
-						console.log("vetor de bolha",stall)
-						inicio = inicio + 1
-						break;
-
-
+							executaInstrução(1,inicio,stall,registersInt,inst[i])
+							inicio = inicio + 1				
+							break;
 
 					}
 				}
@@ -221,6 +184,46 @@
 		if (!vetor.includes(valor)) {
 			vetor = vetor.push(valor)
 		}
+	}
+
+	function executaInstrução(cycleTime,inicio,stalls,registers,instrucao) {
+		var f,d,ex,m,w = -1 
+		f = checkStall(inicio+1,stalls)
+		id = checkStall(f+1,stalls)
+		id_aux = id
+		// IMPORTANTE - aqui no fowarding será diferente
+		console.log(f,d)
+		//RAW - Read after write (registrador ainda nao tá pronto)
+
+		if (instrucao.rs != -1 && registers[instrucao.rs].readyAt > id_aux ){
+				//aqui tem que adicionar no vetor stalls
+				do {
+					console.log("entrou no do")
+					id_aux= id_aux+1
+					insertStall(id_aux,stalls)
+				} while (id_aux< registers[instrucao.rs].readyAt)
+
+			}
+
+			if (registers[instrucao.rd].readyAt > id_aux){
+			//aqui tem que adicionar no vetor stalls
+			do {
+				console.log("entrou no do")
+				id_aux= id_aux+1
+				insertStall(id_aux,stalls)
+				
+			} while (id_aux < registers[instrucao.rd].readyAt)
+		}
+
+		//!!!!! PRECISA INSERIR NO VETOR PIPELINE !!!!!!! AINDA NAO ESTA FAZENDO ISSO
+		//!!!!! PRECISA INSERIR NO VETOR PIPELINE !!!!!!! AINDA NAO ESTA FAZENDO ISSO
+		//!!!!! PRECISA INSERIR NO VETOR PIPELINE !!!!!!! AINDA NAO ESTA FAZENDO ISSO
+		ex = id_aux+cycleTime
+		m = ex + 1
+		w = m + 1
+		registers[instrucao.rt].readyAt = w
+		console.log(f,id,ex,m,w)
+		console.log("vetor de bolha",stalls)
 	}
 </script>
 </html>
