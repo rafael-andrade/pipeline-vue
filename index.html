@@ -8,10 +8,10 @@
 	<div id="pipeline">
 
 		<!-- INPUT PRA VALORES-->
-		<input v-model="inteiro" placeholder="Ciclos Op. Inteiro">
-		<input v-model="mult" placeholder="Mult. Float">
-		<input v-model="div" placeholder="Div. Float">
-		<input v-model="add" placeholder="Add/Sub Float">
+		<input v-model.number="inteiro" placeholder="Ciclos Op. Inteiro">
+		<input v-model.number="mult" placeholder="Mult. Float">
+		<input v-model.number="div" placeholder="Div. Float">
+		<input v-model.number="add" placeholder="Add/Sub Float">
 
 		<select v-model="selected">
 			<option v-for="type in types"> {{type}} </option>			
@@ -43,17 +43,23 @@
 			<select v-model.number="rt">
 				<option v-for="register in f" v-bind:value="register.id"> {{register.name}}</option>
 			</select>
-			
-			<select v-model.number="rs" v-if="op == 'L.D' || op == 'S.D'">
-				<option v-bind:value="-1" >OffSet</option>
-				<option v-for="register in r" v-bind:value="register.id"> {{register.name}}</option>
-			</select>
-			<select v-model.number="rs" v-else>
-				<option v-for="register in f" v-bind:value="register.id"> {{register.name}}</option>
-			</select>
-			<select v-model.number="rd">
-				<option v-for="register in f" v-bind:value="register.id"> {{register.name}}</option>
-			</select>
+			<span v-if="op == 'L.D' || op == 'S.D'">
+				<select v-model.number="rs">
+					<option v-bind:value="-1" >OffSet</option>
+				</select>
+				<select v-model.number="rd">
+					<option v-for="register in r" v-bind:value="register.id"> {{register.name}}</option>
+				</select>
+
+			</span>
+			<span v-else>
+				<select v-model.number="rs">
+					<option v-for="register in f" v-bind:value="register.id"> {{register.name}}</option>
+				</select>
+				<select v-model.number="rd">
+					<option v-for="register in f" v-bind:value="register.id"> {{register.name}}</option>
+				</select>
+			</span>
 		</div>
 
 
@@ -65,6 +71,7 @@
 			<tr v-for="inst in instructions">
 				<th>{{inst.id}}</th>
 				<th>{{inst.operation}}</th>
+
 				<th v-if="inst.type == 'INTEGER'">{{r[inst.rt].name}}</th><th v-else>{{f[inst.rt].name}}</th>
 				<th v-if="inst.type == 'INTEGER'">{{r[inst.rs].name}}</th><th v-else>{{f[inst.rs].name}}</th>
 				<th v-if="inst.type == 'INTEGER'">{{r[inst.rd].name}}</th><th v-else>{{f[inst.rd].name}}</th>
@@ -72,6 +79,8 @@
 
 		</table>
 		<button v-on:click="executarNoFowarding">Executar</button>
+
+		
 	</div>
 
 
@@ -79,8 +88,53 @@
 <script type="text/javascript">
 	var app = new Vue({
 		el: '#pipeline',
-		data: function() {
-			return inicialState()
+		data: {
+			newTodoText: '',
+			i: 0,
+			begin: 0,
+			op: '',
+			inteiro: -1, mult: 7, div: -1, add: 3,
+			rt: -1, rs: -1, rd: -1,
+			selected: 0,
+			types: [
+			'INTEGER',
+			'FLOAT'
+			],
+			operationsInt: [
+			'LW',
+			'SW',
+			'ADD',
+			'SUB',
+			'MULT',
+			'DIV'
+			],
+			operationsFloat: [
+			'L.D',
+			'S.D',
+			'ADD.D',
+			'SUB.D',
+			'MULT.D'],
+			instructions: [
+			{id:0, type: 'FLOAT',operation: 'ADD.D', rt: 0, rs: 1, rd: 1},
+			{id:1, type: 'FLOAT',operation: 'MULT.D', rt: 1, rs: 0, rd: 0},
+			{id:2, type: 'FLOAT',operation: 'ADD.D', rt: 2, rs: 1, rd: 1}
+			//{id:1, type: 'INTEGER',operation: 'ADD', rt: 1, rs: 0, rd: 3}
+			],
+			stalls: [],
+			r: [
+			{id: 0, name:"R0", readyAt: -1},
+			{id: 1, name:"R1", readyAt: -1},
+			{id: 2, name:"R2", readyAt: -1},
+			{id: 3, name:"R3", readyAt: -1},
+			{id: 4, name:"R4", readyAt: -1}
+			],
+			f: [
+			{id: 0, name:"F0", readyAt: -1},
+			{id: 1, name:"F2", readyAt: -1},
+			{id: 2, name:"F4", readyAt: -1}
+			],
+			pipeline: []
+
 		},
 		methods: {
 			addNewTodo: function () {
@@ -88,6 +142,7 @@
 				this.newTodoText = ''
 			},
 			insertInstruction: function() {
+				//console.log("VAI TOMA NO CU CARAI", this.f[this.rt].name,this.f[this.rs].name,this.f[this.rd].name)
 				this.instructions.push({id: this.instructions.length, 
 					type: this.selected,
 					operation:this.op, 
@@ -107,7 +162,7 @@
 				var registersFloat = this.f
 				stall = this.stalls
 				for(i = 0; i < inst.length; i++) {
-					console.log("entrou no for")
+					console.log("entrou no for", inst.length)
 					console.log(inst[i].operation)
 					switch(inst[i].operation) {
 						case 'SUB':
@@ -117,20 +172,26 @@
 						case 'LD':
 						case 'SW':
 							console.log("entrou no case",inicio)
-							executaInstrução(1,inicio,stall,registersInt,inst[i])
+							executaInstrução(1,inicio,stall,registersInt,inst[i],pipe)
 							inicio = inicio + 1				
 							break;
 						case 'ADD.D':
-							executaInstrução(this.add,inicio,stall,registersFloat,inst[i])
+							console.log("entrou no ADD.D")
+							executaInstrução(this.add,inicio,stall,registersFloat,inst[i],pipe)
 							inicio = inicio + 1			
 							break;
 						case 'MULT.D':
-							executaInstrução(this.mult,inicio,stall,registersFloat,inst[i])
+							console.log("entrou no MULT.D")
+							executaInstrução(this.mult,inicio,stall,registersFloat,inst[i],pipe)
 							inicio = inicio + 1			
 							break;
 
+
+
 					}
 				}
+
+
 				this.stalls = stall
 			},
 			executarFowarding: function() {
@@ -156,7 +217,7 @@
 		}
 
 	})
-
+/*
 	function checkStall (valor, vetor) {
 		if(!vetor.includes(valor)) {
 			return valor
@@ -170,54 +231,37 @@
 		}
 	}
 
-	function inicialState() {
-		return {
-			newTodoText: '',
-			begin: 0,
-			op: '',
-			inteiro: -1, mult: -1, div: -1, add: -1,
-			rt: -1, rs: -1, rd: -1,
-			selected: 0,
-			types: [
-			'INTEGER',
-			'FLOAT'
-			],
-			operationsInt: [
-			'LW',
-			'SW',
-			'ADD',
-			'SUB',
-			'MULT',
-			'DIV'
-			],
-			operationsFloat: [
-			'L.D',
-			'S.D',
-			'ADD.D',
-			'SUB.D',
-			'MULT.D'],
-			instructions: [
-			//{id:0, type: 'INTEGER',operation: 'ADD', rt: 0, rs: 1, rd: 3},
-			//{id:1, type: 'INTEGER',operation: 'ADD', rt: 1, rs: 0, rd: 3}
-			],
-			stalls: [],
-			r: [
-			{id: 0, name:"R0", readyAt: -1},
-			{id: 1, name:"R1", readyAt: -1},
-			{id: 2, name:"R2", readyAt: -1},
-			{id: 3, name:"R3", readyAt: -1},
-			{id: 4, name:"R4", readyAt: -1}
-			],
-			f: [
-			{id: 0, name:"F0", readyAt: -1},
-			{id: 2, name:"F2", readyAt: -1},
-			{id: 4, name:"F4", readyAt: -1}
-			],
-			pipeline: []
+	*/
+
+
+	function checkStall (pos, stalls) {
+		//console.log("checkStall")
+		if(!findValue(pos,stalls)) {
+			return pos
+		}
+		return checkStall(pos+1,stalls)
+	}
+
+	function insertStall (pos, vetor, inst) {
+		//console.log("INSERT")
+		if (!findValue(pos,vetor)) {
+			vetor = vetor.push({
+				pos: pos,
+				inst: inst
+			})
 		}
 	}
 
-	function executaInstrução(cycleTime,inicio,stalls,registers,instrucao) {
+	function findValue (value,array) {
+		//console.log("PROCURA")
+		for (i = 0; i < array.length; i++) {
+			if (array.pos == value) {
+				return true
+			}
+		}
+		return false
+	}
+	function executaInstrução(cycleTime,inicio,stalls,registers,instrucao,pipeline) {
 		var f,d,ex,m,w = -1 
 		f = checkStall(inicio+1,stalls)
 		id = checkStall(f+1,stalls)
@@ -229,9 +273,8 @@
 		if (instrucao.rs != -1 && registers[instrucao.rs].readyAt > id_aux ){
 				//aqui tem que adicionar no vetor stalls
 				do {
-					console.log("entrou no do")
 					id_aux= id_aux+1
-					insertStall(id_aux,stalls)
+					insertStall(id_aux,stalls,instrucao.id)
 				} while (id_aux< registers[instrucao.rs].readyAt)
 
 			}
@@ -239,9 +282,8 @@
 			if (registers[instrucao.rd].readyAt > id_aux){
 			//aqui tem que adicionar no vetor stalls
 			do {
-				console.log("entrou no do")
 				id_aux= id_aux+1
-				insertStall(id_aux,stalls)
+				insertStall(id_aux,stalls, instrucao.id)
 				
 			} while (id_aux < registers[instrucao.rd].readyAt)
 		}
@@ -249,12 +291,26 @@
 		//!!!!! PRECISA INSERIR NO VETOR PIPELINE !!!!!!! AINDA NAO ESTA FAZENDO ISSO
 		//!!!!! PRECISA INSERIR NO VETOR PIPELINE !!!!!!! AINDA NAO ESTA FAZENDO ISSO
 		//!!!!! PRECISA INSERIR NO VETOR PIPELINE !!!!!!! AINDA NAO ESTA FAZENDO ISSO
-		ex = id_aux+cycleTime
-		m = ex + 1
+		ex = id_aux + 1
+		m = ex + cycleTime
 		w = m + 1
 		registers[instrucao.rt].readyAt = w
 		console.log(f,id,ex,m,w)
+		pipeline.push({
+			f: f,
+			id: id,
+			ex: ex,
+			m: m,
+			w: w
+		})
+		
 		console.log("vetor de bolha",stalls)
+	}
+
+	function printTable(pipeline) {
+		for (i = 0; i < pipeline.length; i++) {
+
+		}
 	}
 </script>
 </html>
