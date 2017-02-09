@@ -8,11 +8,15 @@
 	<div id="pipeline">
 
 
+		<input v-model="inteiro" placeholder="Ciclos Op. Inteiro">
+		<input v-model="mult" placeholder="Mult. Float">
+		<input v-model="div" placeholder="Div. Float">
+		<input v-model="add" placeholder="Add/Sub Float">
 
 		<select v-model="selected">
 			<option v-for="type in types"> {{type}} </option>			
 		</select>
-		<span v-if="selected == 'INTEGER'">
+		<div v-if="selected == 'INTEGER'">
 			<select v-model="op">
 				<option v-for="operation in operationsInt"> {{operation}}</option>
 			</select>
@@ -25,8 +29,8 @@
 			<select v-model.number="rd">
 				<option v-for="register in r" v-bind:value="register.id" > {{register.name}}</option>
 			</select>
-		</span>
-		<span v-if="selected == 'FLOAT'">
+		</div>
+		<div v-if="selected == 'FLOAT'">
 			<select v-model="op">
 				<option v-for="operation in operationsFloat"> {{operation}}</option>
 			</select>
@@ -39,16 +43,21 @@
 			<select v-model.number="rd">
 				<option v-for="register in f" v-bind:value="register.id"> {{register.name}}</option>
 			</select>
-		</span>
+		</div>
 		
 
 		<button v-on:click="insertInstruction">Inserir</button>
 
 
-
-
 		<table>
 
+			<tr v-for="inst in instructions">
+				<th>{{inst.id}}</th>
+				<th>{{inst.operation}}</th>
+				<th v-if="inst.type == 'INTEGER'">{{r[inst.rt].name}}</th><th v-else>{{f[inst.rt].name}}</th>
+				<th v-if="inst.type == 'INTEGER'">{{r[inst.rs].name}}</th><th v-else>{{f[inst.rt].name}}</th>
+				<th v-if="inst.type == 'INTEGER'">{{r[inst.rd].name}}</th><th v-else>{{f[inst.rt].name}}</th>
+			</tr>
 			<tr v-for="inst in instructions">
 				<th>{{inst.id}}</th>
 				<th>{{inst.operation}}</th>
@@ -67,9 +76,8 @@
 			newTodoText: '',
 			begin: 0,
 			op: '',
-			rt: 0,
-			rs: 0,
-			rd:0,
+			inteiro: -1, mult: -1, div: -1, add: -1,
+			rt: -1, rs: -1, rd: -1,
 			selected: 0,
 			types: [
 			'INTEGER',
@@ -85,10 +93,7 @@
 			'ADD.D',
 			'SUB.D',
 			'MULT.D'],
-			instructions: [
-			{id:0, type:"INTEGER", operation: "ADD", rt: 0, rs: 2, rd: 3},
-			{id:2, type:"INTEGER", operation: "ADD", rt: 2, rs: 3, rd: 4}
-			],
+			instructions: [],
 			stalls: [],
 			r: [
 			{id: 0, name:"R0", readyAt: -1},
@@ -101,7 +106,8 @@
 			{id: 0, name:"F0", readyAt: -1},
 			{id: 2, name:"F2", readyAt: -1},
 			{id: 4, name:"F4", readyAt: -1}
-			]
+			],
+			pipeline: []
 		},
 		methods: {
 			addNewTodo: function () {
@@ -109,11 +115,32 @@
 				this.newTodoText = ''
 			},
 			insertInstruction: function() {
-				this.instructions.push({id: this.instructions.length, type: this.selected, operation:this.op, rt: this.rt, rs: this.rs, rd: this.rd})
+				this.instructions.push({id: this.instructions.length, 
+					type: this.selected,
+					operation:this.op, 
+					rt: this.rt, 
+					rs: this.rs, 
+					rd: this.rd
+				})
 				console.log(this.instructions)
 			},
 			executarNoFowarding: function() {
+				var inst = this.instructions
+				var pipe = this.pipeline
+				var registersInt = this.r
+				var registersFloat = this.f
+				var stall = this.stalls
+				var f,d,ex,m,w = -1 
+				for(i = 0; i < inst.length; i++) {
+					switch(inst.operation) {
+						case 'ADD':
+							f = checkStall(begin,stall)
+							d = checkStall(f)
+							if (registers[inst.rs].readyAt < )
 
+
+					}
+				}
 			},
 			executarFowarding: function() {
 
@@ -121,5 +148,12 @@
 
 		}
 	})
+
+	function checkStall (valor, vetor) {
+			if(!vetor.includes(valor)) {
+				return valor
+			}
+			return checkStall(valor+1,vetor)
+		}
 </script>
 </html>
