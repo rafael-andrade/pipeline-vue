@@ -7,7 +7,7 @@
 <body>
 	<div id="pipeline">
 
-
+		<!-- INPUT PRA VALORES-->
 		<input v-model="inteiro" placeholder="Ciclos Op. Inteiro">
 		<input v-model="mult" placeholder="Mult. Float">
 		<input v-model="div" placeholder="Div. Float">
@@ -58,15 +58,11 @@
 				<th v-if="inst.type == 'INTEGER'">{{r[inst.rs].name}}</th><th v-else>{{f[inst.rt].name}}</th>
 				<th v-if="inst.type == 'INTEGER'">{{r[inst.rd].name}}</th><th v-else>{{f[inst.rt].name}}</th>
 			</tr>
-			<tr v-for="inst in instructions">
-				<th>{{inst.id}}</th>
-				<th>{{inst.operation}}</th>
-				<th v-if="inst.type == 'INTEGER'">{{r[inst.rt].name}}</th><th v-else>{{f[inst.rt].name}}</th>
-				<th v-if="inst.type == 'INTEGER'">{{r[inst.rs].name}}</th><th v-else>{{f[inst.rt].name}}</th>
-				<th v-if="inst.type == 'INTEGER'">{{r[inst.rd].name}}</th><th v-else>{{f[inst.rt].name}}</th>
-			</tr>
+			
 		</table>
+		<button v-on:click="executarNoFowarding">Executar</button>
 	</div>
+	
 
 </body>
 <script type="text/javascript">
@@ -93,7 +89,10 @@
 			'ADD.D',
 			'SUB.D',
 			'MULT.D'],
-			instructions: [],
+			instructions: [
+			{id:0, type: 'INTEGER',operation: 'ADD', rt: 0, rs: 1, rd: 3},
+			{id:0, type: 'INTEGER',operation: 'ADD', rt: 1, rs: 0, rd: 3}
+			],
 			stalls: [],
 			r: [
 			{id: 0, name:"R0", readyAt: -1},
@@ -122,38 +121,83 @@
 					rs: this.rs, 
 					rd: this.rd
 				})
-				console.log(this.instructions)
+				//console.log(this.instructions)
 			},
 			executarNoFowarding: function() {
+				console.log("entrou no metodo")
 				var inst = this.instructions
 				var pipe = this.pipeline
+				var inicio = this.begin
 				var registersInt = this.r
 				var registersFloat = this.f
 				var stall = this.stalls
 				var f,d,ex,m,w = -1 
 				for(i = 0; i < inst.length; i++) {
-					switch(inst.operation) {
+					console.log("entrou no for")
+					console.log(inst[i].operation)
+					switch(inst[i].operation) {
 						case 'ADD':
-							f = checkStall(begin,stall)
-							d = checkStall(f)
-							if (registers[inst.rs].readyAt < )
+
+						f = checkStall(inicio+1,stall)
+						d = checkStall(f+1,stall)
+							// IMPORTANTE - aqui no fowarding será diferente
+							console.log(f,d)
+							if (registersInt[inst[i].rs].readyAt <= d && registersInt[inst[i].rd].readyAt <= d ) {
+								console.log("entrou no if")
+								ex = d+1
+								m = ex + 1
+								w = m + 1
+								registersInt[inst[i].rt].readyAt = w
+								console.log(f,d,ex,m,w)
+								//!!!!! PRECISA INSERIR NO VETOR PIPELINE !!!!!!! AINDA NAO ESTA FAZENDO ISSO
+							} 
+							//RAW - Read after write (registrador ainda nao tá pronto)
+							if (registersInt[inst[i].rs].readyAt > d){
+								//aqui tem que adicionar no vetor stall
+								do {
+									console.log("entrou no do")
+									d= d+1
+									insertStall(d,stall)
+								} while (d < registersInt[inst[i].rs].readyAt)
+								
+							} if (registersInt[inst[i].rd].readyAt > d){
+								//aqui tem que adicionar no vetor stall
+								do {
+									console.log("entrou no do")
+									d= d+1
+									insertStall(d,stall)
+									
+								} while (d < registersInt[inst[i].rd].readyAt)
+							}
+
+							console.log("vetor de bolha",stall)
+							inicio = inicio + 1
+							break;
 
 
+							
+						}
 					}
+				},
+				executarFowarding: function() {
+
 				}
-			},
-			executarFowarding: function() {
 
 			}
 
-		}
-	})
+		})
 
 	function checkStall (valor, vetor) {
-			if(!vetor.includes(valor)) {
-				return valor
-			}
-			return checkStall(valor+1,vetor)
+		if(!vetor.includes(valor)) {
+			return valor
 		}
+		return checkStall(valor+1,vetor)
+	}
+
+	function insertStall (valor, vetor) {
+		if (!vetor.includes(valor)) {
+			vetor = vetor.push(valor)
+		}
+	}
 </script>
 </html>
