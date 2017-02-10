@@ -23,7 +23,7 @@
 		<div class="row">
 			<div class="col-md-4">
 				<div class="panel panel-default">
-					<div class="panel-heading">Latência das Instruções</div>
+					<div class="panel-heading"><strong>Latência das Instruções</strong></div>
 
 					<table class="table latencia-table">
 						<tr>
@@ -95,42 +95,43 @@
 			</div>
 			<div class="col-md-4">
 				<div class="form-group">
+
+					<label for="sel1">Modo de execução:</label>
 					<select class="form-control" id="sel1" v-model="fowarding">
-                                <option disabled>Modo de execução</option>
-                                <option value= "0">Sem adiantamento</option>
-                                <option value= "1">Com adiantamento</option>
-                            </select>
+                        <option disabled>Modo de execução</option>
+                        <option value= "0">Sem adiantamento</option>
+                        <option value= "1">Com adiantamento</option>
+                    </select>
 				</div>
 
-				<div class="input-group">
-					<span class="input-group-addon" id="basic-addon1">#</span>
-					<input type="text" class="form-control" placeholder="Número de instruções do bloco básico" aria-describedby="basic-addon1">
-				</div>
-				<br />
 
 				<!-- Seleciona o tipo de operação, se é inteira ou double -->
-				<select v-model="selected" class="form-control">
-							<option v-for="type in types"> {{type}} </option>
-						</select>
+
+				<label for="tipoinst">Tipo da instrução:</label>
+				<select v-model="selected" class="form-control" id="tipoinst">
+					<option v-for="type in types"> {{type}} </option>
+				</select>
 				<br>
 				<!-- Se selecionado inteiro vai imprimir as operações de inteiro
 						Também será mostrado os registrados de inteiro -->
 				<div v-if="selected == 'INTEGER'">
-					<select v-model="op" class="form-control instrucao">
-								<option v-for="operation in operationsInt"> {{operation}}</option>
-							</select>
+
+					<label for="inst" style="display:block;">Instrução:</label>
+					<select v-model="op" class="form-control instrucao" id="inst">
+						<option v-for="operation in operationsInt"> {{operation}}</option>
+					</select>
 
 					<select v-model.number="rt" class="form-control reg">
-								<option v-for="register in r" v-bind:value="register.id" > {{register.name}}</option>
-							</select>
+						<option v-for="register in r" v-bind:value="register.id" > {{register.name}}</option>
+					</select>
 
 					<!-- Se for LW e SE ele não lê o RS , e seta o RS da instrução como -1 -->
-					<select v-model.number="rs" v-if="op == 'LW' || op == 'SW'" class="form-control reg">
-								<option v-bind:value="-1" >OffSet</option>
-							</select>
+					<select v-model.number="rs" v-if="op == 'LW' || op == 'SW'" class="form-control reg" style="width:25%">
+						<option v-bind:value="-1" selected="selected" >OffSet</option>
+					</select>
 					<select v-else v-model.number="rs" class="form-control reg">
-								<option v-for="register in r" v-bind:value="register.id"> {{register.name}}</option>
-							</select>
+						<option v-for="register in r" v-bind:value="register.id"> {{register.name}}</option>
+					</select>
 
 					<select v-model.number="rd" class="form-control reg">
 								<option v-for="register in r" v-bind:value="register.id" > {{register.name}}</option>
@@ -140,16 +141,18 @@
 				<!-- Se o tipo selecionado é float ele mostra as instruções de FLOAT
 						Também irá mostrar os registradores FLOAT (exceto no caso de LW e SW que o registrador RD é inteiro)-->
 
+
 				<div v-if="selected == 'FLOAT'">
-					<select v-model="op" class="form-control instrucao">
+					<label for="tipoinstf" style="display:block;">Tipo da instrução:</label>
+					<select v-model="op" class="form-control instrucao" id="tipoinstf">
 								<option v-for="operation in operationsFloat"> {{operation}}</option>
 							</select>
 					<select v-model.number="rt" class="form-control reg">
 								<option v-for="register in f" v-bind:value="register.id"> {{register.name}}</option>
 							</select>
 					<span v-if="op == 'L.D' || op == 'S.D'">
-								<select v-model.number="rs" class="form-control reg">
-									<option v-bind:value="-1" >OffSet</option>
+								<select v-model.number="rs" class="form-control reg" style="width:25%" >
+									<option v-bind:value="-1" selected="selected">OffSet</option>
 								</select>
 								<select v-model.number="rd" class="form-control reg">
 									<option v-for="register in r" v-bind:value="register.id"> {{register.name}}</option>
@@ -173,6 +176,7 @@
 
 				<button v-on:click="download" type="button" class="btn btn-success btn-block executar-button">Download .csv!</button>
 
+				<button class="btn btn-info btn-block" data-toggle="modal" data-target="#myModal">Ajuda!</button>
 			</div>
 			<div class="col-md-4">
 				<div class="form-group">
@@ -212,8 +216,37 @@
 		<hr />
 
 		<!-- Tabela que irá mostrar os dados após executados -->
-		<table id="pipeline-table"> </table>
+		<table id="pipeline-table" class="table"> </table>
 
+		<div class="modal fade" id="myModal" tabindex="-1" role="dialog">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+						<h4 class="modal-title">Como utilizar o Simulador?</h4>
+					</div>
+					<div class="modal-body">
+
+						<p>Se estiver com alguma dúvida quanto ao funcionamento do simulador, listamos aqui algumas dicas que podem ajuda-lo!</p>
+
+						<h4>Latência das Instruções</h4>
+						<p>As latências de cada tipo de instrução, podem ser definidas na primeira coluna de configuração do simulador.
+							Utilizamos como valores padrões, as latências apresentadas nos slides da disciplina.
+							Porém, fique a vontade para altera-las.</p>
+
+						<h4>Modos de execução</h4>
+						<p>O simulador funciona em dois modos, com ou sem adiantamento,
+							escolha a que desejar e o simulador se adaptará."</p>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
+					</div>
+				</div>
+				<!-- /.modal-content -->
+			</div>
+			<!-- /.modal-dialog -->
+		</div>
+		<!-- /.modal -->
 	</div>
 	<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
 	<script src="js/jquery.min.js"></script>

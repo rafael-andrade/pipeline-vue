@@ -59,7 +59,7 @@ var app = new Vue({
             */
         instructions: [
 
-            /* Exemplo do slide 
+            /* Exemplo do slide
             {
                 id: 0,
                 type: 'FLOAT',
@@ -330,6 +330,7 @@ var app = new Vue({
                         executaInstrucao(this.multD, inicio, stall, registersFloat, inst[i], pipe, this.fowarding)
                         break;
                     case 'L.D':
+                    case 'S.D':
                         executaInstrucaoLS(1, inicio, stall, registersFloat, registersInt, inst[i], pipe, this.fowarding)
                         break;
                     case 'BNZ':
@@ -497,12 +498,12 @@ function executaInstrucao(cycleTime, inicio, stalls, registers, instrucao, pipel
 
 /*
 
-Mas porque outra função ? 
+Mas porque outra função ?
 
 O load e o store usam registradores float e inteiros
 logo precisamos passar ambos como parametros
 
-dá pra refatorar ? Sim mas fazemos isso na próxima oportunidade    
+dá pra refatorar ? Sim mas fazemos isso na próxima oportunidade
 */
 
 function executaInstrucaoLS(cycleTime, inicio, stalls, registersFloat, registersInt, instrucao, pipeline, fowarding) {
@@ -547,7 +548,7 @@ function executaInstrucaoLS(cycleTime, inicio, stalls, registersFloat, registers
 function executaInstrucaoBNZorBEQ(cycleTime, inicio, stalls, registers, instrucao, pipeline, fowarding) {
 
     console.log("exucutando " , instrucao.rd)
-    var f, d, ex, m, w = -1 
+    var f, d, ex, m, w = -1
     f = checkStall(inicio + 1, stalls)
 
     id_aux = f
@@ -578,7 +579,7 @@ function executaInstrucaoBNZorBEQ(cycleTime, inicio, stalls, registers, instruca
     } else {
         id = id_aux
     }
-    
+
     ex = checkStall(id + 1, stalls)
     m = checkStall(ex + cycleTime, stalls)
     w = checkStall(m + 1, stalls)
