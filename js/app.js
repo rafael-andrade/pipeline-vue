@@ -116,7 +116,8 @@ var app = new Vue({
                 {id: 9, name:"F18", readyAt: -1},
                 {id: 10, name:"F20", readyAt: -1}
                 ],
-                pipeline: []
+                pipeline: [],
+                csv: ""
 
             },
             methods: {
@@ -183,7 +184,7 @@ var app = new Vue({
 
                 }
                 console.log("fowaaaaarding", this.fowarding)
-                printTable(pipe,stall,registersInt,registersFloat)
+                this.csv = printTable(pipe,stall,registersInt,registersFloat)
                 this.stalls = stall
             },
 
@@ -201,6 +202,9 @@ var app = new Vue({
             resetAll : function() {
                 this.resetReg()
                 this.instructions = []
+            },
+            download: function() {
+                download(this.csv, "pipeline.csv", "text/plain")
             }
 
 
@@ -300,8 +304,8 @@ function executaInstrucao(cycleTime,inicio,stalls,registers,instrucao,pipeline,f
 
     }
     ex = id_aux + 1
-    m = ex + cycleTime
-    w = m + 1
+    m = checkStall(ex + cycleTime, stalls)
+    w = checkStall(m + 1, stalls)
     if (fowarding == 1) {
         switch (instrucao.operation) {
             //Nas operações de Load e Store o valor só fica pronto no fowarding após a leitura da memória
@@ -474,7 +478,7 @@ for (var i = 0; i < pipeline.length; i ++) {
         csv = csv.concat("\n")
 
     }
-    download(csv,"pipeline.csv", "text/plain")
+    return csv
 }
 
 /*
