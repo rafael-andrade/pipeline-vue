@@ -4,18 +4,42 @@
 	<title></title>
 </head>
 <script src="https://unpkg.com/vue/dist/vue.js"></script>
+<style type="text/css">
+	table {
+		border-collapse: collapse;
+		width: 80%;
+	}
+
+	th, td {
+		text-align: left;
+		padding: 8px;
+	}
+
+	tr:nth-child(even){background-color: #f2f2f2}
+
+
+</style>
 <body>
 	<div id="pipeline">
 
-		<!-- INPUT PRA VALORES-->
-		<input v-model.number="inteiro" placeholder="Ciclos Op. Inteiro">
-		<input v-model.number="mult" placeholder="Mult. Float">
-		<input v-model.number="div" placeholder="Div. Float">
-		<input v-model.number="add" placeholder="Add/Sub Float">
+		<!-- Input pra quantidade de ciclos que cada instrução executa
 
+		Tem que botar do lado de cada Input a descriçao-->
+		<input v-model.number="addI" placeholder="Add. Inteiro">
+		<input v-model.number="multI" placeholder="Mult. Inteiro">
+		<input v-model.number="divI" placeholder="Div. Inteiro">
+		<input v-model.number="multD" placeholder="Mult. Float">
+		<input v-model.number="divD" placeholder="Div. Float">
+		<input v-model.number="addD" placeholder="Add/Sub Float">
+
+
+		<!-- Seleciona o tipo de operação, se é inteira ou double -->
 		<select v-model="selected">
 			<option v-for="type in types"> {{type}} </option>			
 		</select>
+
+		<!-- Se selecionado inteiro vai imprimir as operações de inteiro
+		Também será mostrado os registrados de inteiro -->
 		<div v-if="selected == 'INTEGER'">
 			<select v-model="op">
 				<option v-for="operation in operationsInt"> {{operation}}</option>
@@ -25,6 +49,7 @@
 				<option v-for="register in r" v-bind:value="register.id" > {{register.name}}</option>
 			</select>
 
+			<!-- Se for LW e SE ele não lê o RS , e seta o RS da instrução como -1 -->
 			<select v-model.number="rs" v-if="op == 'LW' || op == 'SW'">
 				<option v-bind:value="-1" >OffSet</option>
 			</select>
@@ -36,6 +61,10 @@
 				<option v-for="register in r" v-bind:value="register.id" > {{register.name}}</option>
 			</select>
 		</div>
+
+		<!-- Se o tipo selecionado é float ele mostra as instruções de FLOAT
+		Também irá mostrar os registradores FLOAT (exceto no caso de LW e SW que o registrador RD é inteiro)-->
+		
 		<div v-if="selected == 'FLOAT'">
 			<select v-model="op">
 				<option v-for="operation in operationsFloat"> {{operation}}</option>
@@ -62,32 +91,39 @@
 			</span>
 		</div>
 
-
+		<!-- Chama a função para inserir instrução no vetor de instruções -->
 		<button v-on:click="insertInstruction">Inserir</button>
 
-
+		<!-- Gera tabela com todas as instruções -->
 		<table>
-
-			<tr v-for="inst in instructions">
+			
+			<tr v-for="inst in instructions" >
+				<!--v-if="inst.operation != 'LW' &&	inst.operation != 'SW' && inst.operation != 'L.D' inst.operation != 'S.D'"> -->
 				<th>{{inst.id}}</th>
 				<th>{{inst.operation}}</th>
-
 				<th v-if="inst.type == 'INTEGER'">{{r[inst.rt].name}}</th><th v-else>{{f[inst.rt].name}}</th>
-				<th v-if="inst.type == 'INTEGER'">{{r[inst.rs].name}}</th><th v-else>{{f[inst.rs].name}}</th>
-				<th v-if="inst.type == 'INTEGER'">{{r[inst.rd].name}}</th><th v-else>{{f[inst.rd].name}}</th>
-			</tr>
 
-		</table>
+				<th v-if="inst.rs == -1">OFFSET</th>
+				<th v-else-if="inst.type =='INTEGER'">{{r[inst.rs].name}}</th>
+				<th v-else="inst.type =='FLOAT'">{{f[inst.rs].name}}</th>
 
-		<table id="pipeline-table">
+				<th v-if="inst.rd == -1">OFFSET</th>
+				<th v-else-if="inst.type == 'INTEGER'">{{r[inst.rd].name}}</th>
+				<th v-else-if="inst.rs == -1">{{r[inst.rd].name}}</th>
+				<th v-else>{{f[inst.rd].name}}</th>
+			</span>
+		</tr>
 
-			
+	</table>
 
-		</table>
-		<button v-on:click="executarNoFowarding">Executar</button>
+	<!-- Tabela que irá mostrar os dados após executados -->
+	<table id="pipeline-table">	</table>
 
-		
-	</div>
+	<!-- Chama função que irá imprimir o pipeline -->
+	<button v-on:click="executarNoFowarding">Executar</button>
+
+
+</div>
 
 
 </body>
@@ -102,7 +138,7 @@
 			op: '',
 			ind : 0,
 			index: 0,
-			inteiro: -1, mult: 7, div: -1, add: 3,
+			addI: 1, multI: 1, divI: 1, multD: 7, divD: 20, addD: 4,
 			rt: -1, rs: -1, rd: -1,
 			selected: 0,
 			fowarding: false,
@@ -110,43 +146,108 @@
 			'INTEGER',
 			'FLOAT'
 			],
+
+			//Vetor com todas opeações inteiras possíveis
 			operationsInt: [
 			'LW',
 			'SW',
 			'ADD',
+			'DADDUI',
+			'SUBI',
 			'SUB',
 			'MULT',
-			'DIV'
+			'DIV',
+			'BEQ',
+			'BNZ'
 			],
+
+			// Vetor com todas operações float possíveis
 			operationsFloat: [
 			'L.D',
 			'S.D',
 			'ADD.D',
 			'SUB.D',
-			'MULT.D'],
-			instructions: [
-			{id:0, type: 'FLOAT',operation: 'ADD.D', rt: 0, rs: 1, rd: 1},
-			{id:1, type: 'FLOAT',operation: 'MULT.D', rt: 1, rs: 0, rd: 0},
-			{id:2, type: 'FLOAT',operation: 'ADD.D', rt: 2, rs: 1, rd: 1}
-			//{id:1, type: 'INTEGER',operation: 'ADD', rt: 1, rs: 0, rd: 3}
-			],
-			stalls: [],
-			r: [
-			{id: 0, name:"R0", readyAt: -1},
-			{id: 1, name:"R1", readyAt: -1},
-			{id: 2, name:"R2", readyAt: -1},
-			{id: 3, name:"R3", readyAt: -1},
-			{id: 4, name:"R4", readyAt: -1}
-			],
-			f: [
-			{id: 0, name:"F0", readyAt: -1},
-			{id: 1, name:"F2", readyAt: -1},
-			{id: 2, name:"F4", readyAt: -1}
-			],
-			pipeline: []
+			'MULT.D',
+			'DIV.D'],
 
-		},
-		methods: {
+			//Vetor que armazena todas as instruções
+			/* Instrução contém:
+				id: inteiro;
+				type: {"FLOAT" ou "INTEGER"}
+				operation {"operationsInt" ou "operationsFloat"}
+				rt: registrador destino
+				rs: primeiro registrador
+				rd: segundo registrador
+				*/
+				instructions: [
+				{id:0, type: 'FLOAT',operation: 'L.D', rt: 0, rs: -1, rd: 1},
+				{id:1, type: 'FLOAT',operation: 'L.D', rt: 2, rs: -1, rd: 2},
+				{id:2, type: 'FLOAT',operation: 'MULT.D', rt: 0, rs: 0, rd: 2},
+				{id:3, type: 'FLOAT',operation: 'ADD.D', rt: 1, rs: 0, rd: 1},
+				{id:4, type: 'INTEGER',operation: 'DADDUI', rt: 1, rs: -1, rd: 1},
+				{id:5, type: 'INTEGER',operation: 'DADDUI', rt: 2, rs: -1, rd: 2},
+				{id:6, type: 'INTEGER',operation: 'SUB', rt: 4, rs: 3, rd: 1},
+			//{id:7, type: 'INTEGER',operation: 'BNZ', rt: 0, rs: -1, rd: -1}
+			],
+
+			//Vetor que armazena stall
+			/*
+				Stall contém:
+					pos: posição do stall,
+					inst: id da instrução que começou o stall
+
+					*/
+					stalls: [],
+
+			/*
+				Vetor que contem os registradores inteiros
+				r é:
+					id: 0 a 31
+					name: R1 até R32
+					readyAt: valor que representa em qual ciclo o registrador poderá ser usado (-1 pode ser usado)
+					*/
+					r: [
+					{id: 0, name:"R1", readyAt: -1},
+					{id: 1, name:"R2", readyAt: -1},
+					{id: 2, name:"R3", readyAt: -1},
+					{id: 3, name:"R4", readyAt: -1},
+					{id: 4, name:"R5", readyAt: -1},
+					{id: 5, name:"R6", readyAt: -1},
+					{id: 6, name:"R7", readyAt: -1},
+					{id: 7, name:"R8", readyAt: -1},
+					{id: 8, name:"R9", readyAt: -1},
+					{id: 9, name:"R10", readyAt: -1},
+					{id: 10, name:"R11", readyAt: -1},
+					{id: 11, name:"R12", readyAt: -1},
+					{id: 12, name:"R13", readyAt: -1}
+
+					],
+
+			/*
+				Vetor que contem os registradores float
+
+				f é:
+					id: 0 a 15
+					name: F0 até F30
+					readyAt: valor que representa em qual ciclo o registrador poderá ser usado (-1 pode ser usado)
+					*/
+					f: [
+					{id: 0, name:"F0", readyAt: -1},
+					{id: 1, name:"F2", readyAt: -1},
+					{id: 2, name:"F4", readyAt: -1},
+					{id: 3, name:"F6", readyAt: -1},
+					{id: 4, name:"F8", readyAt: -1},
+					{id: 5, name:"F10", readyAt: -1},
+					{id: 6, name:"F12", readyAt: -1},
+					{id: 7, name:"F14", readyAt: -1},
+					{id: 8, name:"F16", readyAt: -1},
+					{id: 9, name:"F18", readyAt: -1},
+					{id: 10, name:"F20", readyAt: -1}
+					],
+					pipeline: []
+
+				},
+				methods: {
 			//Método que insere uma instrução no vetor data.instructions
 			insertInstruction: function() {
 				this.instructions.push({id: this.instructions.length, 
@@ -161,7 +262,7 @@
 			//Necessita alteração - FOWARDING SERÁ definido 
 			executarNoFowarding: function() {
 				this.resetReg()
-				console.log("entrou no metodo")
+				//console.log("entrou no metodo")
 				var inst = this.instructions
 				var pipe = this.pipeline
 				var inicio = this.begin
@@ -172,44 +273,48 @@
 
 				//Faz a execução de todas as instruções
 				for(var i = 0; i < inst.length; i++) {
-					//console.log("entrou no for", inst.length, " valor de i:" ,i)
-					//console.log(inst[i].operation)
 					switch(inst[i].operation) {
 						case 'SUB':
-						case 'MULT':
-						case 'DIV':
-						case 'ADD':
+						
+						
 						case 'LD':
+						case 'DADDUI':
+						case 'SUBI':
 						case 'SW':
-						console.log("entrou no case",inicio)
-						executaInstrução(1,inicio,stall,registersInt,inst[i],pipe,this.fowarding)
-						inicio = inicio + 1				
-						break;
-						case 'ADD.D':
-						console.log("entrou no ADD.D")
-						executaInstrução(this.add,inicio,stall,registersFloat,inst[i],pipe,this.fowarding)
-						inicio = inicio + 1			
-						break;
-						case 'MULT.D':
-						console.log("entrou no MULT.D")
-						executaInstrução(this.mult,inicio,stall,registersFloat,inst[i],pipe,this.fowarding)
-						console.log("saindo do mult")
-						inicio = inicio + 1			
-						break
-						default: 
-						console.log("testando");
-						break;
-					}
-					console.log("valor de i no final", i)
+							//Executa a instrução com valor default de 1
+							executaInstrucao(1,inicio,stall,registersInt,inst[i],pipe,this.fowarding)							
+							break;
+							case 'ADD':
+							executaInstrucao(this.addI,inicio,stall,registersInt,inst[i],pipe,this.fowarding)
+							break;
+							case 'DIV':
+							executaInstrucao(this.divI,inicio,stall,registersInt,inst[i],pipe,this.fowarding)
+							break;						
+							case 'MULT':
+							executaInstrucao(this.multI,inicio,stall,registersInt,inst[i],pipe,this.fowarding)
+							break;
+							case 'ADD.D':
+							executaInstrucao(this.addD,inicio,stall,registersFloat,inst[i],pipe,this.fowarding)					
+							break;
+							case 'MULT.D':
+							executaInstrucao(this.multD,inicio,stall,registersFloat,inst[i],pipe,this.fowarding)					
+							break;
+							case 'L.D':
+							executaInstrucaoLS(1,inicio,stall,registersFloat,registersInt,inst[i],pipe,this.fowarding)
+
+							break;
+
+
+						}
+						inicio = pipe[i].f
+					//console.log("valor de i no final", i)
+					console.log(inicio)
 				}
-				console.log("saiu do for", inst.length)
 
 				printTable(pipe,stall)
 				this.stalls = stall
 			},
-			executarFowarding: function() {
 
-			},
 			resetReg: function() {
 				for (i = 0 ; i < this.r.length; i++) {
 					this.r[i].readyAt = -1
@@ -248,7 +353,7 @@
 
 
 	function checkStall (pos, stalls) {
-		//console.log("checkStall")
+		
 		if(findValue(pos,stalls) < 0) {
 			return pos
 		}
@@ -256,7 +361,7 @@
 	}
 
 	function insertStall (pos, vetor, inst) {
-		//console.log("INSERT")
+		////console.log("INSERT")
 		if (findValue(pos,vetor) < 0) {
 			vetor.push({
 				pos: pos,
@@ -266,7 +371,7 @@
 	}
 
 	function findValue (value,array) {
-		//console.log("PROCURA")
+		////console.log("PROCURA")
 		for (i = 0; i < array.length; i++) {
 			if (array[i].pos == value) {
 				return i
@@ -274,58 +379,80 @@
 		}
 		return -1
 	}
-	function executaInstrução(cycleTime,inicio,stalls,registers,instrucao,pipeline,fowarding) {
+
+	function maiorValor (pipeline) {
+		var maior = 0
+		for (var i = 0; i < pipeline.length; i++) {
+			if (pipeline[i].w > maior)
+				maior = pipeline[i].w
+		}
+
+		return maior;
+	}
+
+	//Função que executa todas as instruções menos
+	function executaInstrucao(cycleTime,inicio,stalls,registers,instrucao,pipeline,fowarding) {
 		var f,d,ex,m,w = -1 
 		f = checkStall(inicio+1,stalls)
 		id = checkStall(f+1,stalls)
 		id_aux = id
-		// IMPORTANTE - aqui no fowarding será diferente
-		//console.log(f,d)
-		//RAW - Read after write (registrador ainda nao tá pronto)
+		/*
+			Checa se registrador não é offset ou inteiro
+			e se o primeiro registrador está liberado pra uso
+			*/ 
 
-		if (instrucao.rs != -1 && registers[instrucao.rs].readyAt > id_aux ){
-				//aqui tem que adicionar no vetor stalls
-				do {
-					id_aux= id_aux+1
-					insertStall(id_aux,stalls,instrucao.id)
-				} while (id_aux< registers[instrucao.rs].readyAt)
+			if (instrucao.rs != -1 && registers[instrucao.rs].readyAt > id_aux ){
 
-			}
-
-			if (registers[instrucao.rd].readyAt > id_aux){
-			//aqui tem que adicionar no vetor stalls
+			//registrador não está liberado, precisa inserir stall até que esteje
 			do {
 				id_aux= id_aux+1
-				insertStall(id_aux,stalls, instrucao.id)
-				
-			} while (id_aux < registers[instrucao.rd].readyAt)
+				insertStall(id_aux,stalls,instrucao.id)
+			} while (id_aux< registers[instrucao.rs].readyAt)
+
 		}
 
-		for (var i = 0; i < stalls.length; i++ ) { 
-			console.log(stalls[i].pos)
-		}
+		/* 
+			Checa se o segundo registrador é offset ou inteiro
+			se não verifica se está pronto pra uso
+			*/
+			if (instrucao.rd != -1 && registers[instrucao.rd].readyAt > id_aux){
+				do {
+					id_aux= id_aux+1
+					insertStall(id_aux,stalls, instrucao.id)
 
-		//!!!!! PRECISA INSERIR NO VETOR PIPELINE !!!!!!! AINDA NAO ESTA FAZENDO ISSO
-		//!!!!! PRECISA INSERIR NO VETOR PIPELINE !!!!!!! AINDA NAO ESTA FAZENDO ISSO
-		//!!!!! PRECISA INSERIR NO VETOR PIPELINE !!!!!!! AINDA NAO ESTA FAZENDO ISSO
-		ex = id_aux + 1
-		m = ex + cycleTime
-		w = m + 1
-		if (fowarding) { 
-			switch (instrucao.operation) {
-				case 'L.D':
-				case 'S.D':
+				} while (id_aux < registers[instrucao.rd].readyAt)
+			}
+
+			for (var i = 0; i < stalls.length; i++ ) { 
+				console.log(stalls[i].pos)
+			}
+
+			ex = id_aux + 1
+			m = ex + cycleTime
+			w = m + 1
+			if (fowarding) {
+				switch (instrucao.operation) {
+				//Nas operações de Load e Store o valor só fica pronto no fowarding após a leitura da memória
+				case 'LD':
+				case 'SW':
 				registers[instrucao.rt].readyAt = m
 				break;
+				//Nas demais operações o operador fica pronto logo após a execução
+				//Então, dependendo da stall eu acho que não funciona , precisava achar um contra exemplo =(
 				default:
-				registers[instrucao.rt].readyAt = m-1
+				registers[instrucao.rt].readyAt = m - 1
 				break;
-			}
-		} else {
+			}			
+
+		} 
+		//Sem fowarding sempre ficará pronto depois do write (W)
+		else {
 			registers[instrucao.rt].readyAt = w
 		}
+		inicio = f
+		console.log(f,id,ex,m,w, " INICIO ", inicio )
 
-		console.log(f,id,ex,m,w)
+		//Insere as informações no pipeline
 		pipeline.push({
 			inst: instrucao,
 			f: f,
@@ -334,16 +461,82 @@
 			m: m,
 			w: w
 		})		
-		console.log("vetor de bolha",stalls)
 	}
 
+	function executaInstrucaoLS(cycleTime,inicio,stalls,registersFloat,registersInt,instrucao,pipeline,fowarding) {
+		var f,d,ex,m,w = -1 
+		f = checkStall(inicio+1,stalls)
+		id = checkStall(f+1,stalls)
+		id_aux = id
+		
+
+		//Mesma coisa do de cima (será que dá pra modular isso aqui não?)
+		if (instrucao.rs != -1 && registersFloat[instrucao.rs].readyAt > id_aux ){
+			do {
+				id_aux= id_aux+1
+				insertStall(id_aux,stalls,instrucao.id)
+			} while (id_aux< registersFloat[instrucao.rs].readyAt)
+
+		}
+
+		if (instrucao.rs != -1 && registersFloat[instrucao.rd].readyAt > id_aux){
+			do {
+				id_aux= id_aux+1
+				insertStall(id_aux,stalls, instrucao.id)
+				
+			} while (id_aux < registersFloat[instrucao.rd].readyAt)
+		}
+
+		//Se o registrador RS for -1 a instrução é de Load ou Store
+		//e o registrador rs será inteiro ao invés de flaot
+		if (instrucao.rs == -1 && registersInt[instrucao.rd].readyAt > id_aux){
+			//aqui tem que adicionar no vetor stalls
+			do {
+				id_aux= id_aux+1
+				insertStall(id_aux,stalls, instrucao.id)
+				
+			} while (id_aux < registersInt[instrucao.rd].readyAt)
+		}
+
+		for (var i = 0; i < stalls.length; i++ ) { 
+			console.log(stalls[i].pos)
+		}
+
+		ex = id_aux + 1
+		m = ex + cycleTime
+		w = m + 1
+		if (fowarding) { 
+			
+			registersFloat[instrucao.rt].readyAt = m
+
+		} else {
+			registersFloat[instrucao.rt].readyAt = w
+		}
+		console.log(f,id,ex,m,w, "INIC")
+		pipeline.push({
+			inst: instrucao,
+			f: f,
+			id: id,
+			ex: ex,
+			m: m,
+			w: w
+		})		
+		//console.log("vetor de bolha",stalls)
+	}
+
+	//Imprime a table
 	function printTable(pipeline,stalls) {
 		var table = document.getElementById("pipeline-table")
 		var value = ""
+		var row = table.insertRow(0)
+		for (var k = 0; k < maiorValor(pipeline); k++) {
+			row.insertCell(k).innerHTML = k+1	
+		}
 		for (var i = 0; i < pipeline.length; i ++) {
-			console.log("insere linha")
-			var row = table.insertRow(i)
-			console.log("valooooooooooor do W", pipeline[i].w)
+			//console.log("insere linha")
+			row = table.insertRow(i+1)
+			//console.log("valooooooooooor do W", pipeline[i].w)
+
 			for (var j = 1; j <= pipeline[i].w; j++) {
 				tableValue = j - 1
 				while( j < pipeline[i].f) {
@@ -353,28 +546,28 @@
 
 				}
 				if (j == pipeline[i].f) {
-					console.log("IF: ",pipeline[i].f)
+					//console.log("IF: ",pipeline[i].f)
 					row.insertCell(tableValue).innerHTML = " IF "
 				}
 				else if (j == pipeline[i].id) {
-					console.log("ID: 	",pipeline[i].id)
+					//console.log("ID: 	",pipeline[i].id)
 					row.insertCell(tableValue).innerHTML = " ID "
 				}
 				else if (j == pipeline[i].ex) {
-					console.log("EX: ",pipeline[i].ex)
+					//console.log("EX: ",pipeline[i].ex)
 					for (;j < pipeline[i].m;j++) {
-						console.log(j)
+						//console.log(j)
 						row.insertCell(tableValue).innerHTML = " EX"
 					}
 					j = j - 1					
 				}
 				else if (j == pipeline[i].m) {
-					console.log("M: ",pipeline[i].m)
+					//console.log("M: ",pipeline[i].m)
 					row.insertCell(tableValue).innerHTML = " M "
 				}
 
 				else if (j == pipeline[i].w) {
-					console.log("W: ",pipeline[i].w)
+					//console.log("W: ",pipeline[i].w)
 					row.insertCell(tableValue).innerHTML = " W "
 				}
 
@@ -383,7 +576,7 @@
 				}
 
 			}
-			
+
 		}
 	}
 </script>
