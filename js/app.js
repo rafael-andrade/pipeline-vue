@@ -183,7 +183,7 @@ var app = new Vue({
 
                 }
                 console.log("fowaaaaarding", this.fowarding)
-                printTable(pipe,stall)
+                printTable(pipe,stall,registersInt,registersFloat)
                 this.stalls = stall
             },
 
@@ -359,8 +359,8 @@ function executaInstrucaoLS(cycleTime,inicio,stalls,registersFloat,registersInt,
     }
 
     ex = id_aux + 1
-    m = ex + cycleTime
-    w = m + 1
+    m = checkStall(ex + cycleTime, stalls)
+    w = checkStall(m + 1, stalls)
     if (fowarding == 1) {
 
         registersFloat[instrucao.rt].readyAt = m
@@ -381,28 +381,54 @@ function executaInstrucaoLS(cycleTime,inicio,stalls,registersFloat,registersInt,
 }
 
 //Imprime a table
-function printTable(pipeline,stalls) {
+function printTable(pipeline,stalls,registersInt,registersFloat) {
     var table = document.getElementById("pipeline-table")
     var value = ""
     var x = 0
+    var csv = ""
     while ( table.rows.length > 0 )
     {
       table.deleteRow(0);
   }
+
+
 
   var row = table.insertRow(0)
   for (var k = 0; k < maiorValor(pipeline); k++) {
     row.insertCell(k).innerHTML = k+1
 }
 for (var i = 0; i < pipeline.length; i ++) {
-        //console.log("insere linha")
-        row = table.insertRow(i+1)
+    csv = csv.concat(pipeline[i].inst.operation,",")
+    if (pipeline[i].inst.type == "INTEGER") {
+        csv = csv.concat(registersInt[pipeline[i].inst.rt].name,",")
+        if (pipeline[i].inst.rs == -1) {
+            csv = csv.concat("off,")
+        } else {
+            csv = csv.concat(registersInt[pipeline[i].inst.rs].name,",")
+        }
+        if (pipeline[i].inst.rd == -1) {
+            csv = csv.concat("off,")
+        } else {
+            csv = csv.concat(registersInt[pipeline[i].inst.rd].name,",")
+        }
+    } else {
+        csv = csv.concat(registersFloat[pipeline[i].inst.rt].name,",")
+        if (pipeline[i].inst.rs == -1) {
+            csv = csv.concat("off,")
+        } else {
+            csv = csv.concat(registersFloat[pipeline[i].inst.rs].name,",")
+        }
+        csv = csv.concat(registersFloat[pipeline[i].inst.rd].name,",")
+
+    }
+    row = table.insertRow(i+1)
         //console.log("valooooooooooor do W", pipeline[i].w)
 
         for (var j = 1; j <= pipeline[i].w; j++) {
             tableValue = j - 1
             while( j < pipeline[i].f) {
                 row.insertCell(tableValue).innerHTML = " - "
+                csv = csv.concat(",")
                 tableValue = j
                 j = j + 1
 
@@ -410,36 +436,96 @@ for (var i = 0; i < pipeline.length; i ++) {
             if (j == pipeline[i].f) {
                 //console.log("IF: ",pipeline[i].f)
                 row.insertCell(tableValue).innerHTML = " IF "
+                csv = csv.concat("if,")
             }
             else if (j == pipeline[i].id) {
                 //console.log("ID: 	",pipeline[i].id)
                 row.insertCell(tableValue).innerHTML = " ID "
+                csv = csv.concat("id,")
             }
             else if (j == pipeline[i].ex) {
                 //console.log("EX: ",pipeline[i].ex)
                 for (;j < pipeline[i].m;j++) {
                     //console.log(j)
                     row.insertCell(tableValue).innerHTML = " EX"
+                    csv = csv.concat("ex,")
                 }
                 j = j - 1
             }
             else if (j == pipeline[i].m) {
                 //console.log("M: ",pipeline[i].m)
                 row.insertCell(tableValue).innerHTML = " M "
+                csv = csv.concat("m,")
             }
 
             else if (j == pipeline[i].w) {
                 //console.log("W: ",pipeline[i].w)
                 row.insertCell(tableValue).innerHTML = " W "
+                csv =csv.concat("w,")
             }
 
             else {
                 row.insertCell(tableValue).innerHTML = " S "
+                csv = csv.concat("s,")
             }
 
         }
 
+        csv = csv.concat("\n")
+
     }
+    download(csv,"pipeline.csv", "text/plain")
 }
 
+/*
 
+
+CÓDIGO RETIRADO DO STACKOVERFLOW
+
+LINK: http://stackoverflow.com/questions/21012580/is-it-possible-to-write-data-to-file-using-only-javascript
+
+*/
+function download(strData, strFileName, strMimeType) {
+    var D = document,
+    A = arguments,
+    a = D.createElement("a"),
+    d = A[0],
+    n = A[1],
+    t = A[2] || "text/plain";
+
+    //build download link:
+    a.href = "data:" + strMimeType + "charset=utf-8," + escape(strData);
+
+
+    if (window.MSBlobBuilder) { // IE10
+        var bb = new MSBlobBuilder();
+        bb.append(strData);
+        return navigator.msSaveBlob(bb, strFileName);
+    } /* end if(window.MSBlobBuilder) */
+
+
+
+    if ('download' in a) { //FF20, CH19
+        a.setAttribute("download", n);
+        a.innerHTML = "downloading...";
+        D.body.appendChild(a);
+        setTimeout(function() {
+            var e = D.createEvent("MouseEvents");
+            e.initMouseEvent("click", true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+            a.dispatchEvent(e);
+            D.body.removeChild(a);
+        }, 66);
+        return true;
+    }; /* end if('download' in a) */
+
+
+
+    //do iframe dataURL download: (older W3)
+    var f = D.createElement("iframe");
+    D.body.appendChild(f);
+    f.src = "data:" + (A[2] ? A[2] : "application/octet-stream") + (window.btoa ? ";base64" : "") + "," + (window.btoa ? window.btoa : escape)(strData);
+    setTimeout(function() {
+        D.body.removeChild(f);
+    }, 333);
+    return true;
+}
