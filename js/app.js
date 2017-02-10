@@ -20,32 +20,32 @@ var app = new Vue({
         selected: 0,
         fowarding: 0,
         types: [
-            'INTEGER',
-            'FLOAT'
+        'INTEGER',
+        'FLOAT'
         ],
 
         //Vetor com todas opeações inteiras possíveis
         operationsInt: [
-            'LW',
-            'SW',
-            'ADD',
-            'DADDUI',
-            'SUBI',
-            'SUB',
-            'MULT',
-            'DIV',
-            'BEQ',
-            'BNZ'
+        'LW',
+        'SW',
+        'ADD',
+        'DADDUI',
+        'SUBI',
+        'SUB',
+        'MULT',
+        'DIV',
+        'BEQ',
+        'BNZ'
         ],
 
         // Vetor com todas operações float possíveis
         operationsFloat: [
-            'L.D',
-            'S.D',
-            'ADD.D',
-            'SUB.D',
-            'MULT.D',
-            'DIV.D'
+        'L.D',
+        'S.D',
+        'ADD.D',
+        'SUB.D',
+        'MULT.D',
+        'DIV.D'
         ],
 
         //Vetor que armazena todas as instruções
@@ -57,7 +57,7 @@ var app = new Vue({
             rs: primeiro registrador
             rd: segundo registrador
             */
-        instructions: [
+            instructions: [
 
             /* Exemplo do slide
             {
@@ -124,7 +124,7 @@ var app = new Vue({
                 rs: -1,
                 rd: -1
             } */
-        ],
+            ],
 
         //Vetor que armazena stall
         /*
@@ -133,7 +133,7 @@ var app = new Vue({
                 inst: id da instrução que começou o stall
 
                 */
-        stalls: [],
+                stalls: [],
 
         /*
             Vetor que contem os registradores inteiros
@@ -142,73 +142,73 @@ var app = new Vue({
                 name: R1 até R32
                 readyAt: valor que representa em qual ciclo o registrador poderá ser usado (-1 pode ser usado)
                 */
-        r: [{
-                id: 0,
-                name: "R1",
-                readyAt: -1
-            },
-            {
-                id: 1,
-                name: "R2",
-                readyAt: -1
-            },
-            {
-                id: 2,
-                name: "R3",
-                readyAt: -1
-            },
-            {
-                id: 3,
-                name: "R4",
-                readyAt: -1
-            },
-            {
-                id: 4,
-                name: "R5",
-                readyAt: -1
-            },
-            {
-                id: 5,
-                name: "R6",
-                readyAt: -1
-            },
-            {
-                id: 6,
-                name: "R7",
-                readyAt: -1
-            },
-            {
-                id: 7,
-                name: "R8",
-                readyAt: -1
-            },
-            {
-                id: 8,
-                name: "R9",
-                readyAt: -1
-            },
-            {
-                id: 9,
-                name: "R10",
-                readyAt: -1
-            },
-            {
-                id: 10,
-                name: "R11",
-                readyAt: -1
-            },
-            {
-                id: 11,
-                name: "R12",
-                readyAt: -1
-            },
-            {
-                id: 12,
-                name: "R13",
-                readyAt: -1
-            }
+                r: [{
+                    id: 0,
+                    name: "R1",
+                    readyAt: -1
+                },
+                {
+                    id: 1,
+                    name: "R2",
+                    readyAt: -1
+                },
+                {
+                    id: 2,
+                    name: "R3",
+                    readyAt: -1
+                },
+                {
+                    id: 3,
+                    name: "R4",
+                    readyAt: -1
+                },
+                {
+                    id: 4,
+                    name: "R5",
+                    readyAt: -1
+                },
+                {
+                    id: 5,
+                    name: "R6",
+                    readyAt: -1
+                },
+                {
+                    id: 6,
+                    name: "R7",
+                    readyAt: -1
+                },
+                {
+                    id: 7,
+                    name: "R8",
+                    readyAt: -1
+                },
+                {
+                    id: 8,
+                    name: "R9",
+                    readyAt: -1
+                },
+                {
+                    id: 9,
+                    name: "R10",
+                    readyAt: -1
+                },
+                {
+                    id: 10,
+                    name: "R11",
+                    readyAt: -1
+                },
+                {
+                    id: 11,
+                    name: "R12",
+                    readyAt: -1
+                },
+                {
+                    id: 12,
+                    name: "R13",
+                    readyAt: -1
+                }
 
-        ],
+                ],
 
         /*
             Vetor que contem os registradores float
@@ -218,77 +218,81 @@ var app = new Vue({
                 name: F0 até F30
                 readyAt: valor que representa em qual ciclo o registrador poderá ser usado (-1 pode ser usado)
                 */
-        f: [{
-                id: 0,
-                name: "F0",
-                readyAt: -1
-            },
-            {
-                id: 1,
-                name: "F2",
-                readyAt: -1
-            },
-            {
-                id: 2,
-                name: "F4",
-                readyAt: -1
-            },
-            {
-                id: 3,
-                name: "F6",
-                readyAt: -1
-            },
-            {
-                id: 4,
-                name: "F8",
-                readyAt: -1
-            },
-            {
-                id: 5,
-                name: "F10",
-                readyAt: -1
-            },
-            {
-                id: 6,
-                name: "F12",
-                readyAt: -1
-            },
-            {
-                id: 7,
-                name: "F14",
-                readyAt: -1
-            },
-            {
-                id: 8,
-                name: "F16",
-                readyAt: -1
-            },
-            {
-                id: 9,
-                name: "F18",
-                readyAt: -1
-            },
-            {
-                id: 10,
-                name: "F20",
-                readyAt: -1
-            }
-        ],
-        pipeline: [],
-        csv: ""
+                f: [{
+                    id: 0,
+                    name: "F0",
+                    readyAt: -1
+                },
+                {
+                    id: 1,
+                    name: "F2",
+                    readyAt: -1
+                },
+                {
+                    id: 2,
+                    name: "F4",
+                    readyAt: -1
+                },
+                {
+                    id: 3,
+                    name: "F6",
+                    readyAt: -1
+                },
+                {
+                    id: 4,
+                    name: "F8",
+                    readyAt: -1
+                },
+                {
+                    id: 5,
+                    name: "F10",
+                    readyAt: -1
+                },
+                {
+                    id: 6,
+                    name: "F12",
+                    readyAt: -1
+                },
+                {
+                    id: 7,
+                    name: "F14",
+                    readyAt: -1
+                },
+                {
+                    id: 8,
+                    name: "F16",
+                    readyAt: -1
+                },
+                {
+                    id: 9,
+                    name: "F18",
+                    readyAt: -1
+                },
+                {
+                    id: 10,
+                    name: "F20",
+                    readyAt: -1
+                }
+                ],
+                pipeline: [],
+                csv: ""
 
-    },
-    methods: {
+            },
+            methods: {
         //Método que insere uma instrução no vetor data.instructions
         insertInstruction: function() {
-            this.instructions.push({
-                id: this.instructions.length,
-                type: this.selected,
-                operation: this.op,
-                rt: this.rt,
-                rs: this.rs,
-                rd: this.rd
-            })
+            if (rt != 0 && rs != 0 && rd != 0) {
+                this.instructions.push({ 
+                    id: this.instructions.length,
+                    type: this.selected,
+                    operation: this.op,
+                    rt: this.rt,
+                    rs: this.rs,
+                    rd: this.rd
+                })
+            } else {
+                alert("Por favor, insira os dados corretamente")
+            }
         },
         //Executa operação usando ou não fowarding
         //Necessita alteração - FOWARDING SERÁ definido
@@ -314,67 +318,67 @@ var app = new Vue({
                         //Executa a instrução com valor default de 1
                         executaInstrucao(1, inicio, stall, registersInt, inst[i], pipe, this.fowarding);
                         break;
-                    case 'ADD':
+                        case 'ADD':
                         executaInstrucao(this.addI, inicio, stall, registersInt, inst[i], pipe, this.fowarding)
                         break;
-                    case 'DIV':
+                        case 'DIV':
                         executaInstrucao(this.divI, inicio, stall, registersInt, inst[i], pipe, this.fowarding)
                         break;
-                    case 'MULT':
+                        case 'MULT':
                         executaInstrucao(this.multI, inicio, stall, registersInt, inst[i], pipe, this.fowarding)
                         break;
-                    case 'ADD.D':
+                        case 'ADD.D':
                         executaInstrucao(this.addD, inicio, stall, registersFloat, inst[i], pipe, this.fowarding)
                         break;
-                    case 'MULT.D':
+                        case 'MULT.D':
                         executaInstrucao(this.multD, inicio, stall, registersFloat, inst[i], pipe, this.fowarding)
                         break;
-                    case 'L.D':
+                        case 'L.D':
                         executaInstrucaoLoadDouble(1, inicio, stall, registersFloat, registersInt, inst[i], pipe, this.fowarding)
                         break;
-                    case 'S.D':
+                        case 'S.D':
                         executaInstrucaoStoreDouble(1, inicio, stall, registersFloat, registersInt, inst[i], pipe, this.fowarding)
                         break;
-                    case 'BNZ':
-                    case 'BEQ':
+                        case 'BNZ':
+                        case 'BEQ':
                         executaInstrucaoBNZorBEQ(1, inicio, stall, registersInt, inst[i], pipe, this.fowarding)
                         break;
+                    }
+
+                    inicio = pipe[i].f
+
+                }
+                console.log("fowaaaaarding", this.fowarding)
+                this.csv = printTable(pipe, stall, registersInt, registersFloat)
+                this.stalls = stall
+            },
+
+            resetReg: function() {
+                for (i = 0; i < this.r.length; i++) {
+                    this.r[i].readyAt = -1
+                }
+                for (i = 0; i < this.f.length; i++) {
+                    this.f[i].readyAt = -1
                 }
 
-                inicio = pipe[i].f
-
-            }
-            console.log("fowaaaaarding", this.fowarding)
-            this.csv = printTable(pipe, stall, registersInt, registersFloat)
-            this.stalls = stall
-        },
-
-        resetReg: function() {
-            for (i = 0; i < this.r.length; i++) {
-                this.r[i].readyAt = -1
-            }
-            for (i = 0; i < this.f.length; i++) {
-                this.f[i].readyAt = -1
+                this.stalls = []
+                this.pipeline = []
+            },
+            resetAll: function() {
+                this.resetReg()
+                this.instructions = []
+            },
+            remove: function () {
+                this.instructions.pop()
+            },
+            download: function() {
+                download(this.csv, "pipeline.csv", "text/plain")
             }
 
-            this.stalls = []
-            this.pipeline = []
-        },
-        resetAll: function() {
-            this.resetReg()
-            this.instructions = []
-        },
-        remove: function () {
-            this.instructions.pop()
-        },
-        download: function() {
-            download(this.csv, "pipeline.csv", "text/plain")
+
         }
 
-
-    }
-
-})
+    })
 /*
 function checkStall (valor, vetor) {
     if(!vetor.includes(valor)) {
@@ -439,10 +443,10 @@ function executaInstrucao(cycleTime, inicio, stalls, registers, instrucao, pipel
         Checa se registrador não é offset ou inteiro
         e se o primeiro registrador está liberado pra uso
         */
-    id = checkStall(f + 1, stalls)
-    id_aux = id
+        id = checkStall(f + 1, stalls)
+        id_aux = id
 
-    if (instrucao.rs != -1 && registers[instrucao.rs].readyAt > id_aux) {
+        if (instrucao.rs != -1 && registers[instrucao.rs].readyAt > id_aux) {
 
         //registrador não está liberado, precisa inserir stall até que esteje
         do {
@@ -456,33 +460,33 @@ function executaInstrucao(cycleTime, inicio, stalls, registers, instrucao, pipel
         Checa se o segundo registrador é offset ou inteiro
         se não verifica se está pronto pra uso
         */
-    if (instrucao.rd != -1 && registers[instrucao.rd].readyAt > id_aux) {
-        do {
-            id_aux = id_aux + 1
-            insertStall(id_aux, stalls, instrucao.id)
+        if (instrucao.rd != -1 && registers[instrucao.rd].readyAt > id_aux) {
+            do {
+                id_aux = id_aux + 1
+                insertStall(id_aux, stalls, instrucao.id)
 
-        } while (id_aux < registers[instrucao.rd].readyAt)
-    }
+            } while (id_aux < registers[instrucao.rd].readyAt)
+        }
 
-    ex = id_aux + 1
-    m = checkStall(ex + cycleTime, stalls)
-    w = checkStall(m + 1, stalls)
-    if (fowarding == 1) {
-        switch (instrucao.operation) {
+        ex = id_aux + 1
+        m = checkStall(ex + cycleTime, stalls)
+        w = checkStall(m + 1, stalls)
+        if (fowarding == 1) {
+            switch (instrucao.operation) {
             //Nas operações de Load e Store o valor só fica pronto no fowarding após a leitura da memória
             case 'LD':
             case 'SW':
-                registers[instrucao.rt].readyAt = m
-                break;
+            registers[instrucao.rt].readyAt = m
+            break;
 
                 //Nas demais operações o operador fica pronto logo após a execução
                 //Então, dependendo da stall eu acho que não funciona , precisava achar um contra exemplo =(
-            default:
+                default:
                 registers[instrucao.rt].readyAt = m - 1
                 break;
-        }
+            }
 
-    }
+        }
     //Sem fowarding sempre ficará pronto depois do write (W)
     else {
         registers[instrucao.rt].readyAt = w
@@ -620,28 +624,28 @@ function executaInstrucaoBNZorBEQ(cycleTime, inicio, stalls, registers, instruca
     console.log("exucutando " , instrucao.rd)
     if(id_aux == f) {
        id = id_aux + 1
-    } else {
-        id = id_aux
-    }
+   } else {
+    id = id_aux
+}
 
-    ex = checkStall(id + 1, stalls)
-    m = checkStall(ex + cycleTime, stalls)
-    w = checkStall(m + 1, stalls)
-    if (fowarding == 1) {
-        registers[instrucao.rt].readyAt = ex + cycleTime
+ex = checkStall(id + 1, stalls)
+m = checkStall(ex + cycleTime, stalls)
+w = checkStall(m + 1, stalls)
+if (fowarding == 1) {
+    registers[instrucao.rt].readyAt = ex + cycleTime
 
-    } else {
-        registers[instrucao.rt].readyAt = m
-    }
-    console.log(id_aux, f, id, ex, m, w, "INIC")
-    pipeline.push({
-        inst: instrucao,
-        f: f,
-        id: id,
-        ex: ex,
-        m: m,
-        w: w
-    })
+} else {
+    registers[instrucao.rt].readyAt = m
+}
+console.log(id_aux, f, id, ex, m, w, "INIC")
+pipeline.push({
+    inst: instrucao,
+    f: f,
+    id: id,
+    ex: ex,
+    m: m,
+    w: w
+})
     //console.log("vetor de bolha",stalls)
 }
 
@@ -686,21 +690,21 @@ function printTable(pipeline, stalls, registersInt, registersFloat) {
             } if (pipeline[i].inst.rd == -1) {
                 csv = csv.concat("off,")
             } else {
-                 csv = csv.concat(registersFloat[pipeline[i].inst.rd].name, ",")
-            }
+             csv = csv.concat(registersFloat[pipeline[i].inst.rd].name, ",")
+         }
+
+     }
+     row = table.insertRow(i + 1)
+     for (var j = 1; j <= pipeline[i].w; j++) {
+        tableValue = j - 1
+        while (j < pipeline[i].f) {
+            row.insertCell(tableValue).innerHTML = " - "
+            csv = csv.concat(",")
+            tableValue = j
+            j = j + 1
 
         }
-        row = table.insertRow(i + 1)
-        for (var j = 1; j <= pipeline[i].w; j++) {
-            tableValue = j - 1
-            while (j < pipeline[i].f) {
-                row.insertCell(tableValue).innerHTML = " - "
-                csv = csv.concat(",")
-                tableValue = j
-                j = j + 1
-
-            }
-            if (j == pipeline[i].f) {
+        if (j == pipeline[i].f) {
                 //console.log("IF: ",pipeline[i].f)
                 row.insertCell(tableValue).innerHTML = " IF "
                 csv = csv.concat("if,")
@@ -749,11 +753,11 @@ LINK: http://stackoverflow.com/questions/21012580/is-it-possible-to-write-data-t
 
 function download(strData, strFileName, strMimeType) {
     var D = document,
-        A = arguments,
-        a = D.createElement("a"),
-        d = A[0],
-        n = A[1],
-        t = A[2] || "text/plain";
+    A = arguments,
+    a = D.createElement("a"),
+    d = A[0],
+    n = A[1],
+    t = A[2] || "text/plain";
 
     //build download link:
     a.href = "data:" + strMimeType + "charset=utf-8," + escape(strData);
