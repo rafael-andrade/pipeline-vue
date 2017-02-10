@@ -442,7 +442,7 @@ function printTable(pipeline,stalls) {
             }
 
             else {
-                row.insertCell(tableValue).innerHTML = " STALL "
+                row.insertCell(tableValue).innerHTML = " S "
             }
 
         }
