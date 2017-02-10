@@ -330,8 +330,10 @@ var app = new Vue({
                         executaInstrucao(this.multD, inicio, stall, registersFloat, inst[i], pipe, this.fowarding)
                         break;
                     case 'L.D':
+                        executaInstrucaoLoadDouble(1, inicio, stall, registersFloat, registersInt, inst[i], pipe, this.fowarding)
+                        break;
                     case 'S.D':
-                        executaInstrucaoLS(1, inicio, stall, registersFloat, registersInt, inst[i], pipe, this.fowarding)
+                        executaInstrucaoStoreDouble(1, inicio, stall, registersFloat, registersInt, inst[i], pipe, this.fowarding)
                         break;
                     case 'BNZ':
                     case 'BEQ':
@@ -361,6 +363,9 @@ var app = new Vue({
         resetAll: function() {
             this.resetReg()
             this.instructions = []
+        },
+        remove: function () {
+            this.instructions.pop()
         },
         download: function() {
             download(this.csv, "pipeline.csv", "text/plain")
@@ -506,7 +511,7 @@ logo precisamos passar ambos como parametros
 dá pra refatorar ? Sim mas fazemos isso na próxima oportunidade
 */
 
-function executaInstrucaoLS(cycleTime, inicio, stalls, registersFloat, registersInt, instrucao, pipeline, fowarding) {
+function executaInstrucaoLoadDouble(cycleTime, inicio, stalls, registersFloat, registersInt, instrucao, pipeline, fowarding) {
     var f, d, ex, m, w = -1
     f = checkStall(inicio + 1, stalls)
     id = checkStall(f + 1, stalls)
@@ -515,13 +520,13 @@ function executaInstrucaoLS(cycleTime, inicio, stalls, registersFloat, registers
 
     //Se o registrador RS for -1 a instrução é de Load ou Store
     //e o registrador rs será inteiro ao invés de flaot
-    if (registersInt[instrucao.rd].readyAt > id_aux) {
+    if (registersInt[instrucao.rt].readyAt > id_aux) {
         //aqui tem que adicionar no vetor stalls
         do {
             id_aux = id_aux + 1
             insertStall(id_aux, stalls, instrucao.id)
 
-        } while (id_aux < registersInt[instrucao.rd].readyAt)
+        } while (id_aux < registersInt[instrucao.rt].readyAt)
     }
     ex = id_aux + 1
     m = checkStall(ex + cycleTime, stalls)
@@ -532,6 +537,45 @@ function executaInstrucaoLS(cycleTime, inicio, stalls, registersFloat, registers
 
     } else {
         registersFloat[instrucao.rt].readyAt = w
+    }
+    console.log(f, id, ex, m, w, "INIC")
+    pipeline.push({
+        inst: instrucao,
+        f: f,
+        id: id,
+        ex: ex,
+        m: m,
+        w: w
+    })
+    //console.log("vetor de bolha",stalls)
+}
+
+function executaInstrucaoStoreDouble(cycleTime, inicio, stalls, registersFloat, registersInt, instrucao, pipeline, fowarding) {
+    var f, d, ex, m, w = -1
+    f = checkStall(inicio + 1, stalls)
+    id = checkStall(f + 1, stalls)
+    id_aux = id
+
+
+    //Se o registrador RS for -1 a instrução é de Load ou Store
+    //e o registrador rs será inteiro ao invés de flaot
+    if (registersFloat[instrucao.rt].readyAt > id_aux) {
+        //aqui tem que adicionar no vetor stalls
+        do {
+            id_aux = id_aux + 1
+            insertStall(id_aux, stalls, instrucao.id)
+
+        } while (id_aux < registersFloat[instrucao.rt].readyAt)
+    }
+    ex = id_aux + 1
+    m = checkStall(ex + cycleTime, stalls)
+    w = checkStall(m + 1, stalls)
+    if (fowarding == 1) {
+
+        registersInt[instrucao.rd].readyAt = m
+
+    } else {
+        registersInt[instrucao.rd].readyAt = w
     }
     console.log(f, id, ex, m, w, "INIC")
     pipeline.push({
