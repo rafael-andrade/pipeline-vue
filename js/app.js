@@ -281,7 +281,6 @@ var app = new Vue({
             methods: {
         //Método que insere uma instrução no vetor data.instructions
         insertInstruction: function() {
-            if (rt != 0 && rs != 0 && rd != 0) {
                 this.instructions.push({ 
                     id: this.instructions.length,
                     type: this.selected,
@@ -290,9 +289,6 @@ var app = new Vue({
                     rs: this.rs,
                     rd: this.rd
                 })
-            } else {
-                alert("Por favor, insira os dados corretamente")
-            }
         },
         //Executa operação usando ou não fowarding
         //Necessita alteração - FOWARDING SERÁ definido
