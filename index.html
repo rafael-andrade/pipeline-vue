@@ -1,131 +1,224 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
+
 <head>
-	<title></title>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<title>Pipeline Simulator</title>
+
+	<link href="css/bootstrap.min.css" rel="stylesheet">
+	<link href="css/style.css" rel="stylesheet">
+
+	<script src="https://unpkg.com/vue/dist/vue.js"></script>
 </head>
-<script src="https://unpkg.com/vue/dist/vue.js"></script>
-<style type="text/css">
-	table {
-		border-collapse: collapse;
-		width: 80%;
-	}
 
-	th, td {
-		text-align: left;
-		padding: 8px;
-	}
-
-	tr:nth-child(even){background-color: #f2f2f2}
-
-
-</style>
 <body>
-	<div id="pipeline">
+	<div id="pipeline" class="container">
+		<h3>Pipeline Simulator</h3>
+		<p>Simulador que apresenta as soluções da execução de instruções em pipeline de forma gráfica, desenvolvido para a disciplina de Arquitetura de Computadores II - DCC/UFLA.</p>
 
-		<!-- Input pra quantidade de ciclos que cada instrução executa
+		<hr />
+		<div class="row">
+			<div class="col-md-4">
+				<div class="panel panel-default">
+					<div class="panel-heading">Latência das Instruções</div>
 
-		Tem que botar do lado de cada Input a descriçao-->
-		<input v-model.number="addI" placeholder="Add. Inteiro">
-		<input v-model.number="multI" placeholder="Mult. Inteiro">
-		<input v-model.number="divI" placeholder="Div. Inteiro">
-		<input v-model.number="multD" placeholder="Mult. Float">
-		<input v-model.number="divD" placeholder="Div. Float">
-		<input v-model.number="addD" placeholder="Add/Sub Float">
+					<table class="table latencia-table">
+						<tr>
+							<th width="50%">Instrução</th>
+							<th>Latência</th>
+						</tr>
+						<tr>
+							<td>PF - Add/Subtract</td>
+							<td>
+								<div class="input-group ciclos-input">
+									<span class="input-group-addon" id="latencia-pf-addsub">#</span>
+									<input v-model.number="addD" type="text" class="form-control" placeholder="Ciclos" aria-describedby="basic-addon1">
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<td>PF - Multiply</td>
+							<td>
+								<div class="input-group ciclos-input">
+									<span class="input-group-addon" id="latencia-pf-mult">#</span>
+									<input v-model.number="multD" type="text" class="form-control" placeholder="Ciclos" aria-describedby="basic-addon1">
+								</div>
+							</td>
+						</tr>
+
+						<tr>
+							<td>PF - Divide</td>
+							<td>
+								<div class="input-group ciclos-input">
+									<span class="input-group-addon" id="latencia-pf-div">#</span>
+									<input v-model.number="divD" type="text" class="form-control" placeholder="Ciclos" aria-describedby="basic-addon1">
+								</div>
+							</td>
+						</tr>
+
+						<tr>
+							<td>INT - Add/Subtract</td>
+							<td>
+								<div class="input-group ciclos-input">
+									<span class="input-group-addon" id="latencia-int-addsub">#</span>
+									<input v-model.number="addI" type="text" class="form-control" placeholder="Ciclos" aria-describedby="basic-addon1">
+								</div>
+							</td>
+						</tr>
 
 
-		<!-- Seleciona o tipo de operação, se é inteira ou double -->
-		<select v-model="selected">
-			<option v-for="type in types"> {{type}} </option>
-		</select>
+						<tr>
+							<td>INT - Multiply</td>
+							<td>
+								<div class="input-group ciclos-input">
+									<span class="input-group-addon" id="latencia-int-mult">#</span>
+									<input v-model.number="multI" type="text" class="form-control" placeholder="Ciclos" aria-describedby="basic-addon1">
+								</div>
+							</td>
+						</tr>
 
-		<!-- Se selecionado inteiro vai imprimir as operações de inteiro
-		Também será mostrado os registrados de inteiro -->
-		<div v-if="selected == 'INTEGER'">
-			<select v-model="op">
-				<option v-for="operation in operationsInt"> {{operation}}</option>
-			</select>
+						<tr>
+							<td>INT - Divide</td>
+							<td>
+								<div class="input-group ciclos-input">
+									<span class="input-group-addon" id="latencia-int-div">#</span>
+									<input v-model.number="divI" type="text" class="form-control" placeholder="Ciclos" aria-describedby="basic-addon1">
+								</div>
+							</td>
+						</tr>
 
-			<select v-model.number="rt">
-				<option v-for="register in r" v-bind:value="register.id" > {{register.name}}</option>
-			</select>
+					</table>
+				</div>
+			</div>
+			<div class="col-md-4">
+				<div class="form-group">
+					<select class="form-control" id="sel1">
+                                <option disabled>Modo de execução</option>
+                                <option>Sem adiantamento</option>
+                                <option>Com adiantamento</option>
+                            </select>
+				</div>
 
-			<!-- Se for LW e SE ele não lê o RS , e seta o RS da instrução como -1 -->
-			<select v-model.number="rs" v-if="op == 'LW' || op == 'SW'">
-				<option v-bind:value="-1" >OffSet</option>
-			</select>
-			<select v-else v-model.number="rs">
-				<option v-for="register in r" v-bind:value="register.id"> {{register.name}}</option>
-			</select>
+				<div class="input-group">
+					<span class="input-group-addon" id="basic-addon1">#</span>
+					<input type="text" class="form-control" placeholder="Número de instruções do bloco básico" aria-describedby="basic-addon1">
+				</div>
+				<br />
 
-			<select v-model.number="rd">
-				<option v-for="register in r" v-bind:value="register.id" > {{register.name}}</option>
-			</select>
+				<!-- Seleciona o tipo de operação, se é inteira ou double -->
+				<select v-model="selected" class="form-control">
+							<option v-for="type in types"> {{type}} </option>
+						</select>
+				<br>
+				<!-- Se selecionado inteiro vai imprimir as operações de inteiro
+						Também será mostrado os registrados de inteiro -->
+				<div v-if="selected == 'INTEGER'">
+					<select v-model="op" class="form-control instrucao">
+								<option v-for="operation in operationsInt"> {{operation}}</option>
+							</select>
+
+					<select v-model.number="rt" class="form-control reg">
+								<option v-for="register in r" v-bind:value="register.id" > {{register.name}}</option>
+							</select>
+
+					<!-- Se for LW e SE ele não lê o RS , e seta o RS da instrução como -1 -->
+					<select v-model.number="rs" v-if="op == 'LW' || op == 'SW'" class="form-control reg">
+								<option v-bind:value="-1" >OffSet</option>
+							</select>
+					<select v-else v-model.number="rs" class="form-control reg">
+								<option v-for="register in r" v-bind:value="register.id"> {{register.name}}</option>
+							</select>
+
+					<select v-model.number="rd" class="form-control reg">
+								<option v-for="register in r" v-bind:value="register.id" > {{register.name}}</option>
+							</select>
+				</div>
+
+				<!-- Se o tipo selecionado é float ele mostra as instruções de FLOAT
+						Também irá mostrar os registradores FLOAT (exceto no caso de LW e SW que o registrador RD é inteiro)-->
+
+				<div v-if="selected == 'FLOAT'">
+					<select v-model="op" class="form-control instrucao">
+								<option v-for="operation in operationsFloat"> {{operation}}</option>
+							</select>
+					<select v-model.number="rt" class="form-control reg">
+								<option v-for="register in f" v-bind:value="register.id"> {{register.name}}</option>
+							</select>
+					<span v-if="op == 'L.D' || op == 'S.D'">
+								<select v-model.number="rs" class="form-control reg">
+									<option v-bind:value="-1" >OffSet</option>
+								</select>
+								<select v-model.number="rd" class="form-control reg">
+									<option v-for="register in r" v-bind:value="register.id"> {{register.name}}</option>
+								</select>
+
+							</span>
+					<span v-else>
+								<select v-model.number="rs" class="form-control reg">
+									<option v-for="register in f" v-bind:value="register.id"> {{register.name}}</option>
+								</select>
+								<select v-model.number="rd" class="form-control reg">
+									<option v-for="register in f" v-bind:value="register.id"> {{register.name}}</option>
+								</select>
+							</span>
+				</div>
+
+				<!-- Chama a função para inserir instrução no vetor de instruções -->
+				<button v-on:click="insertInstruction" class="btn btn-primary btn-block inserir-button">Inserir instrução</button>
+
+				<button v-on:click="executarNoFowarding" type="button" class="btn btn-success btn-block executar-button">Executar!</button>
+
+			</div>
+			<div class="col-md-4">
+				<div class="form-group">
+					<!-- Gera tabela com todas as instruções -->
+					<div class="panel panel-default">
+						<div class="panel-heading"><strong>Instruções inseridas</strong></div>
+
+						<table class="table latencia-table">
+							<tr>
+								<th>#</th>
+								<th>Instrução</th>
+								<th>Rt</th>
+								<th>Rs</th>
+								<th>Rd</th>
+							</tr>
+							<tr v-for="inst in instructions">
+								<td>{{inst.id}}</td>
+								<td>{{inst.operation}}</td>
+								<td v-if="inst.type == 'INTEGER'">{{r[inst.rt].name}}</td>
+								<td v-else>{{f[inst.rt].name}}</td>
+
+								<td v-if="inst.rs == -1">OFFSET</td>
+								<td v-else-if="inst.type =='INTEGER'">{{r[inst.rs].name}}</td>
+								<td v-else="inst.type =='FLOAT'">{{f[inst.rs].name}}</td>
+
+								<td v-if="inst.rd == -1">OFFSET</td>
+								<td v-else-if="inst.type == 'INTEGER'">{{r[inst.rd].name}}</td>
+								<td v-else-if="inst.rs == -1">{{r[inst.rd].name}}</td>
+								<td v-else>{{f[inst.rd].name}}</td>
+							</tr>
+						</table>
+					</div>
+
+				</div>
+			</div>
 		</div>
+		<hr />
 
-		<!-- Se o tipo selecionado é float ele mostra as instruções de FLOAT
-		Também irá mostrar os registradores FLOAT (exceto no caso de LW e SW que o registrador RD é inteiro)-->
+		<!-- Tabela que irá mostrar os dados após executados -->
+		<table id="pipeline-table"> </table>
 
-		<div v-if="selected == 'FLOAT'">
-			<select v-model="op">
-				<option v-for="operation in operationsFloat"> {{operation}}</option>
-			</select>
-			<select v-model.number="rt">
-				<option v-for="register in f" v-bind:value="register.id"> {{register.name}}</option>
-			</select>
-			<span v-if="op == 'L.D' || op == 'S.D'">
-				<select v-model.number="rs">
-					<option v-bind:value="-1" >OffSet</option>
-				</select>
-				<select v-model.number="rd">
-					<option v-for="register in r" v-bind:value="register.id"> {{register.name}}</option>
-				</select>
-
-			</span>
-			<span v-else>
-				<select v-model.number="rs">
-					<option v-for="register in f" v-bind:value="register.id"> {{register.name}}</option>
-				</select>
-				<select v-model.number="rd">
-					<option v-for="register in f" v-bind:value="register.id"> {{register.name}}</option>
-				</select>
-			</span>
-		</div>
-
-		<!-- Chama a função para inserir instrução no vetor de instruções -->
-		<button v-on:click="insertInstruction">Inserir</button>
-
-		<!-- Gera tabela com todas as instruções -->
-		<table>
-
-			<tr v-for="inst in instructions" >
-				<!--v-if="inst.operation != 'LW' &&	inst.operation != 'SW' && inst.operation != 'L.D' inst.operation != 'S.D'"> -->
-				<th>{{inst.id}}</th>
-				<th>{{inst.operation}}</th>
-				<th v-if="inst.type == 'INTEGER'">{{r[inst.rt].name}}</th><th v-else>{{f[inst.rt].name}}</th>
-
-				<th v-if="inst.rs == -1">OFFSET</th>
-				<th v-else-if="inst.type =='INTEGER'">{{r[inst.rs].name}}</th>
-				<th v-else="inst.type =='FLOAT'">{{f[inst.rs].name}}</th>
-
-				<th v-if="inst.rd == -1">OFFSET</th>
-				<th v-else-if="inst.type == 'INTEGER'">{{r[inst.rd].name}}</th>
-				<th v-else-if="inst.rs == -1">{{r[inst.rd].name}}</th>
-				<th v-else>{{f[inst.rd].name}}</th>
-			</span>
-		</tr>
-
-	</table>
-
-	<!-- Tabela que irá mostrar os dados após executados -->
-	<table id="pipeline-table">	</table>
-
-	<!-- Chama função que irá imprimir o pipeline -->
-	<button v-on:click="executarNoFowarding">Executar</button>
-
-
-</div>
-
-
+	</div>
+	<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+	<script src="js/jquery.min.js"></script>
+	<!-- Include all compiled plugins (below), or include individual files as needed -->
+	<script src="js/bootstrap.min.js"></script>
+	<!-- App in Vue.js -->
+	<script src="js/app.js"></script>
 </body>
-<script src="app.js"></script>
+
 </html>

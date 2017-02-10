@@ -1,0 +1,33 @@
+
+table {
+    border-collapse: collapse;
+    width: 80%;
+}
+
+th,
+td {
+    text-align: left;
+    padding: 8px;
+}
+
+tr:nth-child(even) {
+    background-color: #f2f2f2
+}
+
+
+.reg {
+    display: inline;
+    width: 20%;
+}
+
+.instrucao {
+    display: inline;
+    width: 30%;
+}
+
+.executar-button {
+    margin-top: 20px;
+}
+.inserir-button {
+    margin-top: 20px;
+}
