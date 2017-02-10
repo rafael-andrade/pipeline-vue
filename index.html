@@ -126,16 +126,20 @@
 					</select>
 
 					<!-- Se for LW e SE ele não lê o RS , e seta o RS da instrução como -1 -->
-					<select v-model.number="rs" v-if="op == 'LW' || op == 'SW'" class="form-control reg" style="width:25%">
+					<select v-model.number="rs" v-if="op == 'LW' || op == 'SW' || op == 'DADDUI' || op == 'BEQ' || op == 'BNZ' || op == 'SUBI'" class="form-control reg" style="width:25%">
 						<option v-bind:value="-1" selected="selected" >OffSet</option>
 					</select>
 					<select v-else v-model.number="rs" class="form-control reg">
 						<option v-for="register in r" v-bind:value="register.id"> {{register.name}}</option>
 					</select>
 
-					<select v-model.number="rd" class="form-control reg">
+					<select v-model.number="rd" v-if="op == 'BNZ'" class="form-control reg" style="width:25%">
+						<option v-bind:value="-1" selected="selected" >OffSet</option>
+					</select>
+
+					<select v-model.number="rd"  v-else class="form-control reg" style="width:25%">
 								<option v-for="register in r" v-bind:value="register.id" > {{register.name}}</option>
-							</select>
+					</select>
 				</div>
 
 				<!-- Se o tipo selecionado é float ele mostra as instruções de FLOAT
@@ -177,7 +181,7 @@
 
 				<button v-on:click="executarNoFowarding" type="button" class="btn btn-success btn-block executar-button">Executar!</button>
 
-				<button v-if="pipeline.length > 0" v-on:click="download" type="button" class="btn btn-success btn-block executar-button">Download .csv</button>
+				<button v-on:click="download" type="button" class="btn btn-success btn-block executar-button">Download .csv</button>
 
 				<button class="btn btn-info btn-block" data-toggle="modal" data-target="#myModal">Ajuda!</button>
 			</div>

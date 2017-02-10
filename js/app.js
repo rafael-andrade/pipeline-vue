@@ -310,7 +310,6 @@ var app = new Vue({
             //Faz a execução de todas as instruções
             for (var i = 0; i < inst.length; i++) {
                 switch (inst[i].operation) {
-                    case 'SUB':
                     case 'LW':
                     case 'DADDUI':
                     case 'SUBI':
@@ -318,6 +317,7 @@ var app = new Vue({
                         //Executa a instrução com valor default de 1
                         executaInstrucao(1, inicio, stall, registersInt, inst[i], pipe, this.fowarding);
                         break;
+                        case 'SUB':
                         case 'ADD':
                         executaInstrucao(this.addI, inicio, stall, registersInt, inst[i], pipe, this.fowarding)
                         break;
@@ -372,13 +372,18 @@ var app = new Vue({
                 this.instructions.pop()
             },
             download: function() {
+             if (this.pipeline.length > 0) {
                 download(this.csv, "pipeline.csv", "text/plain")
+                
+            } else {
+                alert("Você precisa executar antes de tentar o Download")
             }
 
 
         }
+    }
 
-    })
+})
 /*
 function checkStall (valor, vetor) {
     if(!vetor.includes(valor)) {
