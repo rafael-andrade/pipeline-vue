@@ -1,3 +1,5 @@
+
+
 var app = new Vue({
     el: '#pipeline',
     // Valores usados na view e nos cálculos do pipeline
@@ -176,35 +178,35 @@ var app = new Vue({
 
 
                     }
+
                     inicio = pipe[i].f
-                //console.log("valor de i no final", i)
-                console.log(inicio)
+
+                }
+                console.log("fowaaaaarding", this.fowarding)
+                printTable(pipe,stall)
+                this.stalls = stall
+            },
+
+            resetReg: function() {
+                for (i = 0 ; i < this.r.length; i++) {
+                    this.r[i].readyAt = -1
+                }
+                for (i = 0 ; i < this.f.length; i++) {
+                    this.f[i].readyAt = -1
+                }
+
+                this.stalls = []
+                this.pipeline = []
+            },
+            resetAll : function() {
+                this.resetReg()
+                this.instructions = []
             }
 
-            printTable(pipe,stall)
-            this.stalls = stall
-        },
 
-        resetReg: function() {
-            for (i = 0 ; i < this.r.length; i++) {
-                this.r[i].readyAt = -1
-            }
-            for (i = 0 ; i < this.f.length; i++) {
-                this.f[i].readyAt = -1
-            }
-
-            this.stalls = []
-            this.pipeline = []
-        },
-        resetAll : function() {
-            this.resetReg()
-            this.instructions = []
         }
 
-
-    }
-
-})
+    })
 /*
 function checkStall (valor, vetor) {
     if(!vetor.includes(valor)) {
@@ -264,20 +266,21 @@ function maiorValor (pipeline) {
 function executaInstrucao(cycleTime,inicio,stalls,registers,instrucao,pipeline,fowarding) {
     var f,d,ex,m,w = -1
     f = checkStall(inicio+1,stalls)
-    id = checkStall(f+1,stalls)
-    id_aux = id
+    
     /*
         Checa se registrador não é offset ou inteiro
         e se o primeiro registrador está liberado pra uso
         */
-
-        if (instrucao.rs != -1 && registers[instrucao.rs].readyAt > id_aux ){
+        if (instrucao.operation != 'BEQ' && instrucao.operation != 'BNZ') {
+            id = checkStall(f+1,stalls)
+            id_aux = id
+            if (instrucao.rs != -1 && registers[instrucao.rs].readyAt > id_aux ){
 
         //registrador não está liberado, precisa inserir stall até que esteje
         do {
             id_aux= id_aux+1
             insertStall(id_aux,stalls,instrucao.id)
-        } while (id_aux< registers[instrucao.rs].readyAt)
+        } while (id_aux < registers[instrucao.rs].readyAt)
 
     }
 
@@ -292,21 +295,21 @@ function executaInstrucao(cycleTime,inicio,stalls,registers,instrucao,pipeline,f
 
             } while (id_aux < registers[instrucao.rd].readyAt)
         }
+    } else if(instrucao.operation != 'BEQ') { 
+        id_aux = f
 
-        for (var i = 0; i < stalls.length; i++ ) {
-            console.log(stalls[i].pos)
-        }
-
-        ex = id_aux + 1
-        m = ex + cycleTime
-        w = m + 1
-        if (fowarding) {
-            switch (instrucao.operation) {
+    }
+    ex = id_aux + 1
+    m = ex + cycleTime
+    w = m + 1
+    if (fowarding == 1) {
+        switch (instrucao.operation) {
             //Nas operações de Load e Store o valor só fica pronto no fowarding após a leitura da memória
             case 'LD':
             case 'SW':
             registers[instrucao.rt].readyAt = m
             break;
+
             //Nas demais operações o operador fica pronto logo após a execução
             //Então, dependendo da stall eu acho que não funciona , precisava achar um contra exemplo =(
             default:
@@ -340,26 +343,9 @@ function executaInstrucaoLS(cycleTime,inicio,stalls,registersFloat,registersInt,
     id_aux = id
 
 
-    //Mesma coisa do de cima (será que dá pra modular isso aqui não?)
-    if (instrucao.rs != -1 && registersFloat[instrucao.rs].readyAt > id_aux ){
-        do {
-            id_aux= id_aux+1
-            insertStall(id_aux,stalls,instrucao.id)
-        } while (id_aux< registersFloat[instrucao.rs].readyAt)
-
-    }
-
-    if (instrucao.rs != -1 && registersFloat[instrucao.rd].readyAt > id_aux){
-        do {
-            id_aux= id_aux+1
-            insertStall(id_aux,stalls, instrucao.id)
-
-        } while (id_aux < registersFloat[instrucao.rd].readyAt)
-    }
-
     //Se o registrador RS for -1 a instrução é de Load ou Store
     //e o registrador rs será inteiro ao invés de flaot
-    if (instrucao.rs == -1 && registersInt[instrucao.rd].readyAt > id_aux){
+    if (registersInt[instrucao.rd].readyAt > id_aux){
         //aqui tem que adicionar no vetor stalls
         do {
             id_aux= id_aux+1
@@ -369,13 +355,13 @@ function executaInstrucaoLS(cycleTime,inicio,stalls,registersFloat,registersInt,
     }
 
     for (var i = 0; i < stalls.length; i++ ) {
-        console.log(stalls[i].pos)
+        //console.log(stalls[i].pos)
     }
 
     ex = id_aux + 1
     m = ex + cycleTime
     w = m + 1
-    if (fowarding) {
+    if (fowarding == 1) {
 
         registersFloat[instrucao.rt].readyAt = m
 
@@ -398,11 +384,17 @@ function executaInstrucaoLS(cycleTime,inicio,stalls,registersFloat,registersInt,
 function printTable(pipeline,stalls) {
     var table = document.getElementById("pipeline-table")
     var value = ""
-    var row = table.insertRow(0)
-    for (var k = 0; k < maiorValor(pipeline); k++) {
-        row.insertCell(k).innerHTML = k+1
-    }
-    for (var i = 0; i < pipeline.length; i ++) {
+    var x = 0
+    while ( table.rows.length > 0 )
+    {
+      table.deleteRow(0);
+  }
+
+  var row = table.insertRow(0)
+  for (var k = 0; k < maiorValor(pipeline); k++) {
+    row.insertCell(k).innerHTML = k+1
+}
+for (var i = 0; i < pipeline.length; i ++) {
         //console.log("insere linha")
         row = table.insertRow(i+1)
         //console.log("valooooooooooor do W", pipeline[i].w)
@@ -449,3 +441,5 @@ function printTable(pipeline,stalls) {
 
     }
 }
+
+
