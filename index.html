@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-
+<!--
+Grupo:
+Breno Ramos
+Felipe Dias
+Rafael Andrade
+-->
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -16,7 +21,9 @@
 
 <body>
 	<div id="pipeline" class="container">
-		<h3>Pipeline Simulator</h3>
+		<h1>Pipeline Simulator</h1>
+		<p>Grupo:
+			Breno Ramos, Felipe Dias e Rafael Andrade</p>
 		<p>Simulador que apresenta as soluções da execução de instruções em pipeline de forma gráfica, desenvolvido para a disciplina de Arquitetura de Computadores II - DCC/UFLA.</p>
 
 		<hr />
@@ -242,8 +249,28 @@
 							Porém, fique a vontade para altera-las.</p>
 
 						<h4>Modos de execução</h4>
-						<p>O simulador funciona em dois modos, com ou sem adiantamento,
-							escolha a que desejar e o simulador se adaptará."</p>
+						<p>O simulador funciona em dois modos, com unidades de adiantamento
+							ou sem unidades de adiantamento (forwarding),
+							escolha a que desejar e o simulador se adaptará.</p>
+
+						<h4>Tipo da instrução</h4>
+						<p>Escolha o tipo da instrução que irá utilizar:
+							Integer (inteiro) ou Float (ponto flutuante).</p>
+
+						<h4>Instruções</h4>
+						<p>Após o tipo da instrução ter sido escolhido, você já poderá
+						inserir as instruções desejadas para cada tipo de instrução requerido.</p>
+
+						<h4>Execução</h4>
+						<p>Para executar o a simulação é simples, basta clicar no botão 'Executar'
+							e o resultado da simulação aparecerá em uma tabela logo abaixo.</p>
+
+						<h4>Observações</h4>
+						<p>Instruções do tipo DADDUI , SW , S.D , BEQ e outras que utilizam apenas 
+						o registrador destino e mais um ou nenhum conterá um registrador OFFSET.
+
+						Só quer dizer que a instrução não precisa de tal registrador para mostrar
+						seu funcionamento no pipeline</p>
 					</div>
 					<div class="modal-footer">
 						<button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>

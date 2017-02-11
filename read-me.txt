@@ -1,0 +1,15 @@
+Grupo:
+Breno Ramos
+Felipe Dias
+Rafael Andrade
+
+
+Para execução do simulador basta abir o arquivo 'index.html' com o seu navegador,
+de preferencia com o Google Chrome ou Firefox.
+
+O sistema é bem fácil de usar e o resto das informações podem ser encontradas dentro da 'Ajuda' 
+no aplicativo.
+
+O código em si tem algumas funções meio duplicadas que dava pra refatorar um pouco, mas 
+pela correria de semana de provas e consequentemente falta de tempo não houve tempo, parece estar 
+funcionando perfeitamente
